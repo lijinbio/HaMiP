@@ -12,9 +12,9 @@ import subprocess
 def runcmd(cmd, log=subprocess.PIPE):
 	print('Running: ' + cmd)
 	try:
-		cp=subprocess.run('bash -c "' + cmd + '"', universal_newlines=True, shell=True, stdout=log, stderr=subprocess.STDOUT)
+		cp=subprocess.run('bash -c "%s"' % cmd, universal_newlines=True, shell=True, stdout=log, stderr=subprocess.STDOUT)
 		if cp.returncode != 0:
-			print('Error: ' + cmd + " failed.", vars(cp), file=sys.stderr)
+			print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
 			sys.exit(-1)
 	except OSError as e:
 		print("Execution failed: ", e, file=sys.stderr)
@@ -86,8 +86,8 @@ def bsmap_stat(config, reference):
 
 def bsmap(config):
 	print('==>bsmap<==')
-	# bsmap_ref(config, 'reference')
-	# bsmap_ref(config, 'spikein')
+	bsmap_ref(config, 'reference')
+	bsmap_ref(config, 'spikein')
 	bsmap_stat(config, 'reference')
 	bsmap_stat(config, 'spikein')
 
@@ -115,6 +115,23 @@ def removeCommonReads(config):
 	for (sampleid, num) in comm:
 		print('\t'.join((sampleid, num)))
 
+def totalWigsum_num(f):
+	cmd = "bedtools genomecov -ibam %s -bg | awk -e 'BEGIN { sum=0 } { sum += $4*($3-$2) } END { print sum }'" % f
+	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	if cp.returncode != 0:
+		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
+		sys.exit(-1)
+	return cp.stdout.strip()
+
+def totalWigsum(config):
+	print('==>totalWigsum<==')
+	inbasedir=os.path.join(config['datainfo']['outdir'], 'removeCommonReads')
+	for sampleinfo in config['sampleinfo']:
+		for reference in ['reference', 'spikein']:
+			f=os.path.join(inbasedir, reference, sampleinfo['sampleid'] + '.bam')
+			wigsum=totalWigsum_num(f)
+			print('\t'.join((sampleinfo['sampleid'], reference, wigsum)))
+
 def estimateSizeFactors():
 	print('==>estimateSizeFactors<==')
 
@@ -131,8 +148,9 @@ def DMR():
 	print('==>DMR<==')
 
 def run(config):
-	bsmap(config)
-	removeCommonReads(config)
+	# bsmap(config)
+	# removeCommonReads(config)
+	totalWigsum(config)
 	estimateSizeFactors()
 	normalizeTotalWigsum()
 	removeDuplication()
