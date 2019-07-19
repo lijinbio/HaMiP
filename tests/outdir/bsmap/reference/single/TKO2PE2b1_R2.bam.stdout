@@ -1,0 +1,11 @@
+[bsmap] @Fri Jul 19 15:17:30 2019 	loading reference file: /data/jin/resource/genome/fasta/hg38/hg38.fa.gz 	(format: gzipped FASTA)
+[bsmap] @Fri Jul 19 15:18:03 2019 	455 reference seqs loaded, total size 3209286105 bp. 33 secs passed
+[bsmap] @Fri Jul 19 15:19:51 2019 	create seed table. 141 secs passed
+[bsmap] @Fri Jul 19 15:19:51 2019 	Single-end alignment(4 threads),
+	Input read file: test_data/TKO2PE2b1_R2.fastq.gz 	(format: gzipped FASTQ)
+	Output file: outdir/bsmap/reference/single/TKO2PE2b1_R2.bam	 (format: SAM, automatically convert to BAM)
+[samopen] SAM header is present: 455 sequences.
+[bsmap] @Fri Jul 19 15:20:11 2019 	total reads: 100000 	total time:  161 secs
+	aligned reads: 39920 (39.9%), unique reads: 39920 (39.9%), suppressed non-unique reads: 15805 (15.8%)
+Sorting BAM ...
+Indexing BAM ...

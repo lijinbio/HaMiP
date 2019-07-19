@@ -3,9 +3,10 @@
 
 __version__ = "0.0.0.1"
 
+import os
+import sys
 import argparse
 import yaml
-import os
 import subprocess
 
 def runcmd(cmd, log=subprocess.PIPE):
@@ -47,10 +48,48 @@ def bsmap_ref(config, reference):
 			fname=os.path.join(config['datainfo']['fastqdir'], sampleinfo['filenames'][0])
 			bsmap_runcmd(fname, config['datainfo'][reference], config['numthreads'], outfile)
 
+import re
+def bsmap_stat_parse(infile):
+	with open(infile) as f:
+		dstr=f.read()
+	totalreads=re.search('total reads: (\d+)', dstr).groups()[0]
+	alignedreads=re.search('aligned reads: (\d+)', dstr).groups()[0]
+	uniquereads=re.search('unique reads: (\d+)', dstr).groups()[0]
+	return (totalreads, alignedreads, uniquereads)
+
+def bsmap_stat(config, reference):
+	basedir=os.path.join(config['datainfo']['outdir'], 'bsmap')
+	print('\t'.join(('sampleid', 'filename', 'genome', 'totalreads', 'alignedreads', 'unqiuereads')))
+	for sampleinfo in config['sampleinfo']:
+		if len(sampleinfo['filenames']) > 1:
+			for fname in sampleinfo['filenames']:
+				bname=os.path.splitext(os.path.splitext(os.path.basename(fname))[0])[0];
+				f=os.path.join(basedir, reference, 'single', bname + '.bam.stdout')
+				totalr, alignedr, uniquer = bsmap_stat_parse(f)
+				print('\t'.join((sampleinfo['sampleid']
+					, fname
+					, reference
+					, totalr
+					, alignedr
+					, uniquer
+					)))
+		else:
+			f=os.path.join(basedir, reference, sampleinfo['sampleid'] + '.bam.stdout')
+			totalr, alignedr, uniquer = bsmap_stat_parse(f)
+			print('\t'.join((sampleinfo['sampleid']
+				, sampleinfo['filenames'][0]
+				, reference
+				, totalr
+				, alignedr
+				, uniquer
+				)))
+
 def bsmap(config):
 	print('==>bsmap<==')
-	bsmap_ref(config, 'reference')
-	bsmap_ref(config, 'spikein')
+	# bsmap_ref(config, 'reference')
+	# bsmap_ref(config, 'spikein')
+	bsmap_stat(config, 'reference')
+	bsmap_stat(config, 'spikein')
 
 def removeCommonReads_runcmd(infile1, infile2, outfile1, outfile2):
 	bin=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'perl', 'removeCommonRead.pl')
@@ -58,18 +97,23 @@ def removeCommonReads_runcmd(infile1, infile2, outfile1, outfile2):
 	cmd = bin + ' ' + infile1 + ' ' + infile2 + \
 		' >(' + 'samtools view -bS - ' + ' -o ' + outfile1 + ' 2>/dev/null)' \
 		' >(' + 'samtools view -bS - ' + ' -o ' + outfile2 + ' 2>/dev/null)'
-	runcmd(cmd)
+	cp=runcmd(cmd)
+	return cp.stdout.strip()
 
 def removeCommonReads(config):
 	print('==>removeCommonReads<==')
 	inbasedir=os.path.join(config['datainfo']['outdir'], 'bsmap')
 	outbasedir=os.path.join(config['datainfo']['outdir'], 'removeCommonReads')
+	comm=[]
 	for sampleinfo in config['sampleinfo']:
 		refinfile=os.path.join(inbasedir, 'reference', sampleinfo['sampleid'] + '.bam')
 		spkinfile=os.path.join(inbasedir, 'spikein', sampleinfo['sampleid'] + '.bam')
 		refoutfile=os.path.join(outbasedir, 'reference', sampleinfo['sampleid'] + '.bam')
 		spkoutfile=os.path.join(outbasedir, 'spikein', sampleinfo['sampleid'] + '.bam')
-		removeCommonReads_runcmd(refinfile, spkinfile, refoutfile, spkoutfile)
+		numcomm=removeCommonReads_runcmd(refinfile, spkinfile, refoutfile, spkoutfile)
+		comm += [(sampleinfo['sampleid'], numcomm)]
+	for (sampleid, num) in comm:
+		print('\t'.join((sampleid, num)))
 
 def estimateSizeFactors():
 	print('==>estimateSizeFactors<==')

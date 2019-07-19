@@ -1,0 +1,38 @@
+../cmsip/cmsip.py -c cms.yaml
+==>bsmap<==
+Running: mkdir -p outdir/bsmap/reference
+Running: bsmap -a test_data/TKO2PE1b2_R1.fastq.gz -d /data/jin/resource/genome/fasta/hg38/hg38.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/reference/TKO2PE1b2.bam
+Running: mkdir -p outdir/bsmap/reference/single
+Running: bsmap -a test_data/TKO2PE2b1_R1.fastq.gz -d /data/jin/resource/genome/fasta/hg38/hg38.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/reference/single/TKO2PE2b1_R1.bam
+Running: mkdir -p outdir/bsmap/reference/single
+Running: bsmap -a test_data/TKO2PE2b1_R2.fastq.gz -d /data/jin/resource/genome/fasta/hg38/hg38.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/reference/single/TKO2PE2b1_R2.bam
+Running: samtools merge outdir/bsmap/reference/TKO2PE2m.bam  outdir/bsmap/reference/single/TKO2PE2b1_R1.bam outdir/bsmap/reference/single/TKO2PE2b1_R2.bam
+Running: mkdir -p outdir/bsmap/reference
+Running: bsmap -a test_data/WTPE1b2_R1.fastq.gz -d /data/jin/resource/genome/fasta/hg38/hg38.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/reference/WTPE1b2.bam
+Running: mkdir -p outdir/bsmap/reference
+Running: bsmap -a test_data/WTPE2b2_R1.fastq.gz -d /data/jin/resource/genome/fasta/hg38/hg38.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/reference/WTPE2b2.bam
+Running: mkdir -p outdir/bsmap/spikein
+Running: bsmap -a test_data/TKO2PE1b2_R1.fastq.gz -d /data/jin/resource/genome/fasta/mm10/mm10.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/spikein/TKO2PE1b2.bam
+Running: mkdir -p outdir/bsmap/spikein/single
+Running: bsmap -a test_data/TKO2PE2b1_R1.fastq.gz -d /data/jin/resource/genome/fasta/mm10/mm10.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/spikein/single/TKO2PE2b1_R1.bam
+Running: mkdir -p outdir/bsmap/spikein/single
+Running: bsmap -a test_data/TKO2PE2b1_R2.fastq.gz -d /data/jin/resource/genome/fasta/mm10/mm10.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/spikein/single/TKO2PE2b1_R2.bam
+Running: samtools merge outdir/bsmap/spikein/TKO2PE2m.bam  outdir/bsmap/spikein/single/TKO2PE2b1_R1.bam outdir/bsmap/spikein/single/TKO2PE2b1_R2.bam
+Running: mkdir -p outdir/bsmap/spikein
+Running: bsmap -a test_data/WTPE1b2_R1.fastq.gz -d /data/jin/resource/genome/fasta/mm10/mm10.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/spikein/WTPE1b2.bam
+Running: mkdir -p outdir/bsmap/spikein
+Running: bsmap -a test_data/WTPE2b2_R1.fastq.gz -d /data/jin/resource/genome/fasta/mm10/mm10.fa.gz -R -n 1 -r 0  -p 4 -o outdir/bsmap/spikein/WTPE2b2.bam
+==>removeCommonReads<==
+Running: mkdir -p outdir/removeCommonReads/reference outdir/removeCommonReads/spikein
+Running: /home/jin/work/prj/cmsprj/pkg/cmsip/cmsip/perl/removeCommonRead.pl outdir/bsmap/reference/TKO2PE1b2.bam outdir/bsmap/spikein/TKO2PE1b2.bam >(samtools view -bS -  -o outdir/removeCommonReads/reference/TKO2PE1b2.bam 2>/dev/null) >(samtools view -bS -  -o outdir/removeCommonReads/spikein/TKO2PE1b2.bam 2>/dev/null)
+Running: mkdir -p outdir/removeCommonReads/reference outdir/removeCommonReads/spikein
+Running: /home/jin/work/prj/cmsprj/pkg/cmsip/cmsip/perl/removeCommonRead.pl outdir/bsmap/reference/TKO2PE2m.bam outdir/bsmap/spikein/TKO2PE2m.bam >(samtools view -bS -  -o outdir/removeCommonReads/reference/TKO2PE2m.bam 2>/dev/null) >(samtools view -bS -  -o outdir/removeCommonReads/spikein/TKO2PE2m.bam 2>/dev/null)
+Running: mkdir -p outdir/removeCommonReads/reference outdir/removeCommonReads/spikein
+Running: /home/jin/work/prj/cmsprj/pkg/cmsip/cmsip/perl/removeCommonRead.pl outdir/bsmap/reference/WTPE1b2.bam outdir/bsmap/spikein/WTPE1b2.bam >(samtools view -bS -  -o outdir/removeCommonReads/reference/WTPE1b2.bam 2>/dev/null) >(samtools view -bS -  -o outdir/removeCommonReads/spikein/WTPE1b2.bam 2>/dev/null)
+Running: mkdir -p outdir/removeCommonReads/reference outdir/removeCommonReads/spikein
+Running: /home/jin/work/prj/cmsprj/pkg/cmsip/cmsip/perl/removeCommonRead.pl outdir/bsmap/reference/WTPE2b2.bam outdir/bsmap/spikein/WTPE2b2.bam >(samtools view -bS -  -o outdir/removeCommonReads/reference/WTPE2b2.bam 2>/dev/null) >(samtools view -bS -  -o outdir/removeCommonReads/spikein/WTPE2b2.bam 2>/dev/null)
+==>estimateSizeFactors<==
+==>normalizeTotalWigsum<==
+==>removeDuplication<==
+==>normalizeWigsum<==
+==>DMR<==

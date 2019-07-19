@@ -57,3 +57,6 @@ while(<READ2>){
 close(READ2);
 close(READB);
 
+my $size = keys %comm;
+print $size, "\n";
+
