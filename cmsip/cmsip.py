@@ -8,9 +8,17 @@ import yaml
 import os
 import subprocess
 
-def runcmd(cmd):
-	print(cmd)
-	print(subprocess.check_output(cmd, universal_newlines=True, shell=True))
+def runcmd(cmd, log=subprocess.PIPE):
+	print('Running: ' + cmd)
+	try:
+		cp=subprocess.run('bash -c "' + cmd + '"', universal_newlines=True, shell=True, stdout=log, stderr=subprocess.STDOUT)
+		if cp['returncode'] != 0:
+			print('Error: ' + cmd + " failed.", vars(cp), file=sys.stderr)
+			sys.exit(-1)
+	except OSError as e:
+		print("Execution failed: ", e, file=sys.stderr)
+		sys.exit(-1)
+	return cp
 
 def bsmap_runcmd(fname, refenece, numthread, outfile):
 	runcmd('mkdir -p ' + os.path.dirname(outfile))
@@ -20,7 +28,7 @@ def bsmap_runcmd(fname, refenece, numthread, outfile):
 		' -R -n 1 -r 0 ' + \
 		' -p ' + str(numthread) + \
 		' -o ' + outfile
-	runcmd(cmd)
+	runcmd(cmd, log=open(outfile+".stdout", 'w+'))
 
 def bsmap_ref(config, reference):
 	outbasedir=os.path.join(config['datainfo']['outdir'], 'bsmap', reference)
@@ -47,17 +55,10 @@ def bsmap(config):
 def removeCommonReads_runcmd(infile1, infile2, outfile1, outfile2):
 	bin=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'perl', 'removeCommonRead.pl')
 	runcmd('mkdir -p ' + os.path.dirname(outfile1) + ' ' + os.path.dirname(outfile2))
-	# cmd = bin + ' ' + infile1 + ' ' + infile2 + \
-	# 	' >(' + 'samtools view -bS - ' + ' -o ' + outfile1 + ' 2>/dev/null)' \
-	# 	' >(' + 'samtools view -bS - ' + ' -o ' + outfile2 + ' 2>/dev/null)'
-	# runcmd(cmd)
-	sam1=os.path.splitext(outfile1)[0] + '.sam'
-	sam2=os.path.splitext(outfile2)[0] + '.sam'
-	cmd = bin + ' ' + infile1 + ' ' + infile2 + ' ' + sam1 + ' ' + sam2
+	cmd = bin + ' ' + infile1 + ' ' + infile2 + \
+		' >(' + 'samtools view -bS - ' + ' -o ' + outfile1 + ' 2>/dev/null)' \
+		' >(' + 'samtools view -bS - ' + ' -o ' + outfile2 + ' 2>/dev/null)'
 	runcmd(cmd)
-	runcmd('samtools view -bS ' + sam1 + ' ' + ' -o ' + outfile1 + ' 2>/dev/null')
-	runcmd('samtools view -bS ' + sam2 + ' ' + ' -o ' + outfile2 + ' 2>/dev/null')
-	runcmd('rm -f ' + sam1 + ' ' + sam2)
 
 def removeCommonReads(config):
 	print('==>removeCommonReads<==')
@@ -86,7 +87,7 @@ def DMR():
 	print('==>DMR<==')
 
 def run(config):
-	# bsmap(config)
+	bsmap(config)
 	removeCommonReads(config)
 	estimateSizeFactors()
 	normalizeTotalWigsum()
