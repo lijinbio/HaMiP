@@ -12,7 +12,7 @@ def runcmd(cmd, log=subprocess.PIPE):
 	print('Running: ' + cmd)
 	try:
 		cp=subprocess.run('bash -c "' + cmd + '"', universal_newlines=True, shell=True, stdout=log, stderr=subprocess.STDOUT)
-		if cp['returncode'] != 0:
+		if cp.returncode != 0:
 			print('Error: ' + cmd + " failed.", vars(cp), file=sys.stderr)
 			sys.exit(-1)
 	except OSError as e:
