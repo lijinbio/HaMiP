@@ -22,5 +22,6 @@ groupinfo:
 datainfo:
   reference: /data/jin/resource/genome/fasta/hg38/hg38.fa.gz
   spikein: /data/jin/resource/genome/fasta/mm10/mm10.fa.gz
-  fastqdir: ./test_data
-  outdir: ./outdir
+  fastqdir: test_data
+  outdir: outdir
+numthreads: 4
