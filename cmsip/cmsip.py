@@ -52,44 +52,40 @@ import re
 def bsmap_stat_parse(infile):
 	with open(infile) as f:
 		dstr=f.read()
-	totalreads=re.search('total reads: (\d+)', dstr).groups()[0]
-	alignedreads=re.search('aligned reads: (\d+)', dstr).groups()[0]
-	uniquereads=re.search('unique reads: (\d+)', dstr).groups()[0]
+	totalreads=int(re.search('total reads: (\d+)', dstr).groups()[0])
+	alignedreads=int(re.search('aligned reads: (\d+)', dstr).groups()[0])
+	uniquereads=int(re.search('unique reads: (\d+)', dstr).groups()[0])
 	return (totalreads, alignedreads, uniquereads)
 
 def bsmap_stat(config, reference):
 	basedir=os.path.join(config['datainfo']['outdir'], 'bsmap')
-	print('\t'.join(('sampleid', 'filename', 'genome', 'totalreads', 'alignedreads', 'unqiuereads')))
+	stats = {}
 	for sampleinfo in config['sampleinfo']:
 		if len(sampleinfo['filenames']) > 1:
+			totalr=0
+			alignedr=0
+			uniquer=0
 			for fname in sampleinfo['filenames']:
 				bname=os.path.splitext(os.path.splitext(os.path.basename(fname))[0])[0];
 				f=os.path.join(basedir, reference, 'single', bname + '.bam.stdout')
-				totalr, alignedr, uniquer = bsmap_stat_parse(f)
-				print('\t'.join((sampleinfo['sampleid']
-					, fname
-					, reference
-					, totalr
-					, alignedr
-					, uniquer
-					)))
+				ftotalr, falignedr, funiquer = bsmap_stat_parse(f)
+				totalr += ftotalr
+				alignedr += falignedr
+				uniquer += funiquer
+			stats[sampleinfo['sampleid']] = (totalr, alignedr, uniquer)
 		else:
 			f=os.path.join(basedir, reference, sampleinfo['sampleid'] + '.bam.stdout')
-			totalr, alignedr, uniquer = bsmap_stat_parse(f)
-			print('\t'.join((sampleinfo['sampleid']
-				, sampleinfo['filenames'][0]
-				, reference
-				, totalr
-				, alignedr
-				, uniquer
-				)))
+			stats[sampleinfo['sampleid']] = bsmap_stat_parse(f)
+	return stats
 
 def bsmap(config):
 	print('==>bsmap<==')
-	bsmap_ref(config, 'reference')
-	bsmap_ref(config, 'spikein')
-	bsmap_stat(config, 'reference')
-	bsmap_stat(config, 'spikein')
+	# bsmap_ref(config, 'reference')
+	# bsmap_ref(config, 'spikein')
+	mpstat = {}
+	mpstat['reference'] = bsmap_stat(config, 'reference')
+	mpstat['spikein'] = bsmap_stat(config, 'spikein')
+	return mpstat
 
 def removeCommonReads_runcmd(infile1, infile2, outfile1, outfile2):
 	bin=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'perl', 'removeCommonRead.pl')
@@ -98,42 +94,47 @@ def removeCommonReads_runcmd(infile1, infile2, outfile1, outfile2):
 		' >(' + 'samtools view -bS - ' + ' -o ' + outfile1 + ' 2>/dev/null)' \
 		' >(' + 'samtools view -bS - ' + ' -o ' + outfile2 + ' 2>/dev/null)'
 	cp=runcmd(cmd)
-	return cp.stdout.strip()
+	return int(cp.stdout.strip())
 
 def removeCommonReads(config):
 	print('==>removeCommonReads<==')
 	inbasedir=os.path.join(config['datainfo']['outdir'], 'bsmap')
 	outbasedir=os.path.join(config['datainfo']['outdir'], 'removeCommonReads')
-	comm=[]
+	comm={}
 	for sampleinfo in config['sampleinfo']:
 		refinfile=os.path.join(inbasedir, 'reference', sampleinfo['sampleid'] + '.bam')
 		spkinfile=os.path.join(inbasedir, 'spikein', sampleinfo['sampleid'] + '.bam')
 		refoutfile=os.path.join(outbasedir, 'reference', sampleinfo['sampleid'] + '.bam')
 		spkoutfile=os.path.join(outbasedir, 'spikein', sampleinfo['sampleid'] + '.bam')
-		numcomm=removeCommonReads_runcmd(refinfile, spkinfile, refoutfile, spkoutfile)
-		comm += [(sampleinfo['sampleid'], numcomm)]
-	for (sampleid, num) in comm:
-		print('\t'.join((sampleid, num)))
+		comm[sampleinfo['sampleid']] = removeCommonReads_runcmd(refinfile, spkinfile, refoutfile, spkoutfile)
+	return comm
 
-def totalWigsum_num(f):
+def totalwigsums_n(f):
 	cmd = "bedtools genomecov -ibam %s -bg | awk -e 'BEGIN { sum=0 } { sum += $4*($3-$2) } END { print sum }'" % f
 	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 	if cp.returncode != 0:
 		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
 		sys.exit(-1)
-	return cp.stdout.strip()
+	return int(cp.stdout.strip())
 
-def totalWigsum(config):
-	print('==>totalWigsum<==')
+def totalwigsums(config):
+	print('==>totalwigsums<==')
 	inbasedir=os.path.join(config['datainfo']['outdir'], 'removeCommonReads')
-	for sampleinfo in config['sampleinfo']:
-		for reference in ['reference', 'spikein']:
+	twss = {}
+	for reference in ['reference', 'spikein']:
+		tws = {}
+		for sampleinfo in config['sampleinfo']:
 			f=os.path.join(inbasedir, reference, sampleinfo['sampleid'] + '.bam')
-			wigsum=totalWigsum_num(f)
-			print('\t'.join((sampleinfo['sampleid'], reference, wigsum)))
+			tws[sampleinfo['sampleid']] = totalwigsums_n(f)
+		twss[reference] = tws
+	return twss
 
-def estimateSizeFactors():
+import statistics
+def estimateSizeFactors(tws):
 	print('==>estimateSizeFactors<==')
+	mws = statistics.median(tws.values())
+	sizefactors = {id : mws / ws for id, ws in tws.items()}
+	return sizefactors
 
 def normalizeTotalWigsum():
 	print('==>normalizeTotalWigsum<==')
@@ -148,10 +149,14 @@ def DMR():
 	print('==>DMR<==')
 
 def run(config):
-	# bsmap(config)
-	# removeCommonReads(config)
-	totalWigsum(config)
-	estimateSizeFactors()
+	mpstat = bsmap(config)
+	print(mpstat)
+	commcounts = removeCommonReads(config)
+	print(commcounts)
+	twss = totalwigsums(config)
+	print(twss)
+	sizefactors = estimateSizeFactors(twss['spikein'])
+	print(sizefactors)
 	normalizeTotalWigsum()
 	removeDuplication()
 	normalizeWigsum()
