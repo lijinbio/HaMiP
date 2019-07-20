@@ -136,8 +136,10 @@ def estimateSizeFactors(tws):
 	sizefactors = {id : mws / ws for id, ws in tws.items()}
 	return sizefactors
 
-def normalizeTotalWigsum():
-	print('==>normalizeTotalWigsum<==')
+def normalizetwsref(tws, sizefactors):
+	print('==>normalizetwsref<==')
+	twsn = {id: ws * sizefactors[id] for id, ws in tws.items()}
+	return twsn
 
 def removeDuplication():
 	print('==>removeDuplication<==')
@@ -157,7 +159,9 @@ def run(config):
 	print(twss)
 	sizefactors = estimateSizeFactors(twss['spikein'])
 	print(sizefactors)
-	normalizeTotalWigsum()
+	twsrefnorm = normalizetwsref(twss['reference'], sizefactors)
+	print(twsrefnorm)
+	barplot(config, twsrefnorm)
 	removeDuplication()
 	normalizeWigsum()
 	DMR()
