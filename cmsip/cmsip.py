@@ -279,7 +279,7 @@ def swapdict(d):
 			nd[v]=[k]
 	return nd
 
-def t_test(config, cnttablefile):
+def t_test(config, cnttablefile, ttestfile):
 	if config['verbose']:
 		print('==>t_test<==')
 	sampleid2group={sampleinfo['sampleid']:sampleinfo['group'] for sampleinfo in config['sampleinfo']}
@@ -288,10 +288,9 @@ def t_test(config, cnttablefile):
 	group2=group2sampleid[config['groupinfo']['group2']]
 	g1str = 'c(' + ', '.join(["'" + name + "'" for name in group1]) + ')'
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
-	outfile=os.path.join(config['datainfo']['outdir'], 't.test.txt')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 't.test.R')
 	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"source('%s')\"" % (
-			config['numthreads'], cnttablefile, g1str, g2str, outfile, rscript
+			config['numthreads'], cnttablefile, g1str, g2str, ttestfile, rscript
 			)
 	if config['verbose']:
 		print(cmd)
@@ -328,7 +327,10 @@ def run(config):
 		genomecov(config, statfile)
 		genomemeancov(config)
 		meancovtable(config)
-	t_test(config, cnttablefile)
+	ttestfile=os.path.join(config['datainfo']['outdir'], 't.test.txt')
+	if 'ttestfile' in config['datainfo']:
+		ttestfile = config['datainfo']['ttestfile']
+	t_test(config, cnttablefile, ttestfile)
 
 def main():
 	parser = argparse.ArgumentParser(

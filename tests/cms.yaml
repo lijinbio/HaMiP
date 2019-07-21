@@ -23,11 +23,11 @@ datainfo:
   reference: /data/jin/resource/genome/fasta/hg38/hg38.fa.gz
   spikein: /data/jin/resource/genome/fasta/mm10/mm10.fa.gz
   windowfile: ../data/hg38_w100.bed
-  # windowfile: hg38_w100.bed
   windowsize: 100
   fastqdir: test_data
   outdir: outdir
   statfile: outdir/qcstats.txt
   cnttablefile: outdir/meancovtable.txt.gz
-numthreads: 4
+  ttestfile: outdir/t.test.txt
+numthreads: 56
 verbose: True
