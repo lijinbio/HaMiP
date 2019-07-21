@@ -15,7 +15,7 @@ def runcmd(cmd, log=subprocess.PIPE, echo=False):
 	try:
 		cp=subprocess.run('bash -c "%s"' % cmd, universal_newlines=True, shell=True, stdout=log, stderr=subprocess.STDOUT)
 		if cp.returncode != 0:
-			print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
+			print('Error: %s failed.' % cmd, vars(cp), sep='\n', file=sys.stderr)
 			sys.exit(-1)
 	except OSError as e:
 		print("Execution failed: ", e, file=sys.stderr)
@@ -82,8 +82,8 @@ def bsmap_stat(config, reference):
 def bsmap(config):
 	if config['verbose']:
 		print('==>bsmap<==')
-	# bsmap_ref(config, 'reference')
-	# bsmap_ref(config, 'spikein')
+	bsmap_ref(config, 'reference')
+	bsmap_ref(config, 'spikein')
 	mpstat = {}
 	mpstat['reference'] = bsmap_stat(config, 'reference')
 	mpstat['spikein'] = bsmap_stat(config, 'spikein')
@@ -246,7 +246,7 @@ def genomemeancov(config):
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(indir, sampleinfo['sampleid'] + '.bedgraph')
 			outfile=os.path.join(outdir, sampleinfo['sampleid'] + '.bedgraph')
-			cmd = "bedtools intersect -a %s -b %s -wo | awk -v OFS='\t' -e '{ print $1, $2, $3, $7*$8/%d }' | bedtools groupby -g 1,2,3 -c 4 -o sum > %s" % (config['datainfo']['windowfile'], infile, config['datainfo']['windowsize'], outfile)
+			cmd = "bedtools intersect -a %s -b %s -wo | awk -v OFS='\t' -e '{ print $1, $2, $3, $7*$8/%d }' | sort -k 1,1 -k 2,2n -k 3,3n | bedtools groupby -g 1,2,3 -c 4 -o sum > %s" % (config['datainfo']['windowfile'], infile, config['datainfo']['windowsize'], outfile)
 			runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['verbose'])
 			if config['verbose']:
 				print(cmd)
@@ -262,8 +262,7 @@ def meancovtable(config):
 	outfile=os.path.join(config['datainfo']['outdir'], 'meancovtable.txt.gz')
 	sampleids=[sampleinfo['sampleid'] for sampleinfo in config['sampleinfo']]
 	fs=[os.path.join(indir, id+'.bedgraph') for id in sampleids]
-	cmd = "bedtools unionbedg -i %s -header -names %s | awk -v FS='\t' -v OFS='\t' -v separator='-' -v col=3 -e '{ for (i=1; i<col; i++) { printf $i ((i<NF)?separator:ORS) } for (i=col; i<=NF; i++) { printf $i ((i<NF)?OFS:ORS) } }' | gzip -n > %s" % (' '.join(fs), ' '.join(sampleids), outfile)
-	runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['verbose'])
+	cmd = "bedtools unionbedg -i %s -header -names %s | gzip -n > %s" % (' '.join(fs), ' '.join(sampleids), outfile)
 	if config['verbose']:
 		print(cmd)
 	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -271,9 +270,35 @@ def meancovtable(config):
 		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
 		sys.exit(-1)
 
-def DMR(config, cnttablefile):
+def swapdict(d):
+	nd = {}
+	for k, v in d.items():
+		if v in nd:
+			nd[v].append(k)
+		else:
+			nd[v]=[k]
+	return nd
+
+def t_test(config, cnttablefile):
 	if config['verbose']:
-		print('==>DMR<==')
+		print('==>t_test<==')
+	sampleid2group={sampleinfo['sampleid']:sampleinfo['group'] for sampleinfo in config['sampleinfo']}
+	group2sampleid=swapdict(sampleid2group)
+	group1=group2sampleid[config['groupinfo']['group1']]
+	group2=group2sampleid[config['groupinfo']['group2']]
+	g1str = 'c(' + ', '.join(["'" + name + "'" for name in group1]) + ')'
+	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
+	outfile=os.path.join(config['datainfo']['outdir'], 't.test.txt')
+	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 't.test.R')
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"source('%s')\"" % (
+			config['numthreads'], cnttablefile, g1str, g2str, outfile, rscript
+			)
+	if config['verbose']:
+		print(cmd)
+	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	if cp.returncode != 0:
+		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
+		sys.exit(-1)
 
 def run(config):
 	statfile = os.path.join(config['datainfo']['outdir'], 'qcstats.txt')
@@ -303,7 +328,7 @@ def run(config):
 		genomecov(config, statfile)
 		genomemeancov(config)
 		meancovtable(config)
-	DMR(config, cnttablefile)
+	t_test(config, cnttablefile)
 
 def main():
 	parser = argparse.ArgumentParser(
