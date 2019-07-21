@@ -29,5 +29,5 @@ datainfo:
   statfile: outdir/qcstats.txt
   cnttablefile: outdir/meancovtable.txt.gz
   ttestfile: outdir/t.test.txt
-numthreads: 56
+numthreads: 20
 verbose: True

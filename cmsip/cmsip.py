@@ -312,7 +312,7 @@ def run(config):
 		qcstats['twsrefnorm'] = normalizetwsref(qcstats['twss']['reference'], qcstats['sizefactors'], config['verbose'])
 		QCstats(config, qcstats)
 		barplot(config, qcstats['twsrefnorm'])
-		
+
 	cnttablefile=os.path.join(config['datainfo']['outdir'], 'meancovtable.txt.gz')
 	if 'cnttablefile' in config['datainfo']:
 		cnttablefile = config['datainfo']['cnttablefile']
@@ -327,10 +327,12 @@ def run(config):
 		genomecov(config, statfile)
 		genomemeancov(config)
 		meancovtable(config)
+
 	ttestfile=os.path.join(config['datainfo']['outdir'], 't.test.txt')
 	if 'ttestfile' in config['datainfo']:
 		ttestfile = config['datainfo']['ttestfile']
-	t_test(config, cnttablefile, ttestfile)
+	if not os.path.exists(ttestfile):
+		t_test(config, cnttablefile, ttestfile)
 
 def main():
 	parser = argparse.ArgumentParser(

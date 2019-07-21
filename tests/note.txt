@@ -1,3 +1,0 @@
-../cmsip/cmsip.py -c cms.yaml
-==>t_test<==
-R --slave --no-save --no-restore --no-init-file -e "numthreads=56" -e "infile='outdir/meancovtable.txt.gz'" -e "group1=c('TKO2PE1b2', 'TKO2PE2m')" -e "group2=c('WTPE1b2', 'WTPE2b2')" -e "outfile='outdir/t.test.txt'" -e "source('/home/jin/work/prj/cmsprj/pkg/cmsip/cmsip/R/t.test.R')"
