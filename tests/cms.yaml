@@ -25,3 +25,4 @@ datainfo:
   fastqdir: test_data
   outdir: outdir
 numthreads: 4
+verbose: True
