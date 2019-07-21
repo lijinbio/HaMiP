@@ -9,8 +9,9 @@ import argparse
 import yaml
 import subprocess
 
-def runcmd(cmd, log=subprocess.PIPE):
-	print('Running: ' + cmd)
+def runcmd(cmd, log=subprocess.PIPE, echo=True):
+	if echo:
+		print('Running: ' + cmd)
 	try:
 		cp=subprocess.run('bash -c "%s"' % cmd, universal_newlines=True, shell=True, stdout=log, stderr=subprocess.STDOUT)
 		if cp.returncode != 0:
@@ -22,7 +23,7 @@ def runcmd(cmd, log=subprocess.PIPE):
 	return cp
 
 def bsmap_runcmd(fname, refenece, numthread, outfile):
-	runcmd('mkdir -p ' + os.path.dirname(outfile))
+	runcmd('mkdir -p ' + os.path.dirname(outfile), echo=False)
 	cmd = 'bsmap' + \
 		' -a ' + fname + \
 		' -d ' + refenece + \
@@ -89,7 +90,7 @@ def bsmap(config):
 
 def removeCommonReads_runcmd(infile1, infile2, outfile1, outfile2):
 	bin=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'perl', 'removeCommonRead.pl')
-	runcmd('mkdir -p ' + os.path.dirname(outfile1) + ' ' + os.path.dirname(outfile2))
+	runcmd('mkdir -p ' + os.path.dirname(outfile1) + ' ' + os.path.dirname(outfile2), echo=False)
 	cmd = bin + ' ' + infile1 + ' ' + infile2 + \
 		' >(' + 'samtools view -bS - ' + ' -o ' + outfile1 + ' 2>/dev/null)' \
 		' >(' + 'samtools view -bS - ' + ' -o ' + outfile2 + ' 2>/dev/null)'
@@ -140,6 +141,16 @@ def normalizetwsref(tws, sizefactors):
 	print('==>normalizetwsref<==')
 	twsn = {id: ws * sizefactors[id] for id, ws in tws.items()}
 	return twsn
+
+import matplotlib.pyplot as plt
+def barplot(config, tws):
+	outfile=os.path.join(config['datainfo']['outdir'], 'results', 'twsn_barplot.pdf')
+	plt.figure(figsize=(5, 5))
+	ax=plt.axes()
+	ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: '{:,}'.format(int(x))))
+	plt.bar(*zip(*tws.items()), width=0.5, color='blue')
+	runcmd('mkdir -p ' + os.path.dirname(outfile), echo=False)
+	plt.savefig(outfile, bbox_inches='tight')
 
 def removeDuplication():
 	print('==>removeDuplication<==')
