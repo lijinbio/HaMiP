@@ -15,7 +15,7 @@ import re
 import os
 from setuptools import find_packages, setup
 
-DEPENDENCIES = []
+DEPENDENCIES = ['pyyaml', 'matplotlib', 'pandas']
 EXCLUDE_FROM_PACKAGES = ["contrib", "docs", "tests*"]
 CURDIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -54,9 +54,6 @@ setup(
     # https://pypi.org/pypi?%3Aaction=list_classifiers
     license="License :: OSI Approved :: MIT License",
     classifiers=[
-        "Programming Language :: Python",
-        # "Programming Language :: Python :: 3",
-        # "Operating System :: OS Independent",
-        # "Private :: Do Not Upload"
+        "Programming Language :: Python :: 3",
     ],
 )
