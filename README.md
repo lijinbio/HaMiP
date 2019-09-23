@@ -4,6 +4,8 @@ Detecting differential 5hmC regions from CMS-IP sequencing data.
 
 Source URL: [https://github.com/lijinbio/cmsip](https://github.com/lijinbio/cmsip)
 
+![Workflow of CMSIP.](cmsip_flowchart.pdf)
+
 ## Installation
 
 ### Dependencies
@@ -42,18 +44,36 @@ sampleinfo:
 groupinfo:
   group1: tko
   group2: wt
-datainfo:
-  reference: hg38.fa.gz
-  spikein: mm10.fa.gz
-  windowfile: hg38_w100.bed
-  windowsize: 100
+resultdir: result
+aligninfo:
+  reference: /data/jin/resource/genome/fasta/hg38/hg38.fa.gz
+  spikein: /data/jin/resource/genome/fasta/mm10/mm10.fa.gz
   fastqdir: test_data
-  outdir: outdir
-  statfile: outdir/qcstats.txt
-  cnttablefile: outdir/meancovtable.txt.gz
-  ttestfile: outdir/t.test.txt
-numthreads: 20
-verbose: True
+  statfile: qcstats.txt
+  barplotinfo:
+    outfile: qcstats_twsn_barplot.pdf
+    height: 5
+    width: 5
+  numthreads: 20
+  verbose: True
+genomescaninfo:
+  readextension: True
+  fragsize: 100
+  windowfile: result/hg38_w200.bed
+  referencename: hg38
+  windowsize: 200
+  readscount: False
+  counttablefile: counttable.txt.gz
+  verbose: True
+dhmrinfo:
+  method: 4
+  mindepth: 5
+  testfile: test.txt.gz
+  qthr: 1.05
+  maxdistance: 0
+  dhmrfile: dhmr.txt.gz
+  numthreads: 20
+  verbose: True
 ```
 
 ### `sampleinfo`
@@ -64,7 +84,9 @@ This block stores detailed metadata information of samples.
 
 This block lists the interested comparison.  The alternative hypothesis is true difference in means of `group1` and `group2` is less than 0.
 
-### `datainfo`
+### `aligninfo`
+
+Options and data information required for alignment.
 
 - reference
 
