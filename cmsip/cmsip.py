@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.0.6"
+__version__ = "0.0.0.7"
 
 import os
 import sys
@@ -496,6 +496,27 @@ def run(config):
 	counttablefile=genomescan_run(config)
 	dhmr_run(config, statfile, counttablefile)
 
+def updatedefs(data, pars):
+	obj=data
+	path=pars[0].split('.')
+	for k in path[:-1]:
+		if k not in obj:
+			obj[k] = {}
+		obj=obj[k]
+	v=pars[1]
+	if v.replace('.' , '', 1).isdigit():
+		if '.' in v:
+			v=float(v)
+		else:
+			v=int(v)
+	elif v in ['True', 'T', 'true', 't']:
+		v=True
+	elif v in ['False', 'F', 'false', 'f']:
+		v=False
+	obj[path[-1]]=v
+
+import re
+import pprint
 def main():
 	parser = argparse.ArgumentParser(
 		description='CMS-IP sequencing analysis'
@@ -505,8 +526,18 @@ def main():
 		, required=True
 		, help='Configuration file in YAML format.'
 		)
+	parser.add_argument('-D'
+			, action='append'
+			, nargs='+'
+			, type=lambda kv: re.split('=', kv)
+			)
+
 	args = parser.parse_args()
 	config=yaml.load(args.config, Loader=yaml.FullLoader)
+	if args.D is not None:
+		for vars in args.D:
+			updatedefs(config, vars[0])
+	pprint.pprint(config)
 	run(config)
 
 if __name__ == "__main__":
