@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.0.7"
+__version__ = "0.0.0.8"
 
 import os
 import sys
@@ -536,7 +536,8 @@ def main():
 	config=yaml.load(args.config, Loader=yaml.FullLoader)
 	if args.D is not None:
 		for vars in args.D:
-			updatedefs(config, vars[0])
+			for vs in vars:
+				updatedefs(config, vs)
 	pprint.pprint(config)
 	run(config)
 
