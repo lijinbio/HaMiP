@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.0.8"
+__version__ = "0.0.0.9"
 
 import os
 import sys
@@ -527,11 +527,11 @@ def main():
 		, help='Configuration file in YAML format.'
 		)
 	parser.add_argument('-D'
-			, action='append'
-			, nargs='+'
-			, type=lambda kv: re.split('=', kv)
-			)
-
+		, action='append'
+		, nargs='+'
+		, type=lambda kv: re.split('=', kv)
+		, help='Define variable=value to suppress configuration file. e.g.\n"-D dhmrinfo.verbose=False"'
+		)
 	args = parser.parse_args()
 	config=yaml.load(args.config, Loader=yaml.FullLoader)
 	if args.D is not None:
