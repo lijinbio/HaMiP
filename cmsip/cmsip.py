@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1"
+__version__ = "0.0.1.1.1"
 
 import os
 import sys
@@ -247,7 +247,7 @@ def readextension(config):
 	if config['genomescaninfo']['verbose']:
 		print('==>readextension<==')
 	indir=os.path.join(config['resultdir'], 'bamtobed')
-	outdir=os.path.join(config['resultdir'], 'readextension_frag'+str(fragsize))
+	outdir=os.path.join(config['resultdir'], 'readextension_frag'+str(config['genomescaninfo']['fragsize']))
 	for sampleinfo in config['sampleinfo']:
 		infile=os.path.join(indir, sampleinfo['sampleid'] + '.bed')
 		outfile=os.path.join(outdir, sampleinfo['sampleid'] + '.bed')
