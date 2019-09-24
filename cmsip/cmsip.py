@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1.5"
+__version__ = "0.0.1.1.6"
 
 import os
 import sys
@@ -462,7 +462,7 @@ def mergedhmr(config, testfile, outfile):
 	tmpfile=outfile+'.bed'
 
 	qcol=7
-	if config['dhmrinfo']['method'] in [1, 2, 3]:
+	if config['dhmrinfo']['method'] in ['ttest', 'chisq', 'gtest']:
 		qcol=6
 	cmd = "(printf '%%s\\n' chrom start end $(zcat %s | head -n 1 | cut -f 2-) | paste -s -d $'\\t'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $%s<%s { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] OFS } for (j=2; j<=NF; j++) { printf $j ((j<NF)?OFS:ORS) } }' | sort -k 1,1 -k 2,2n -k 3,3n) > %s" % (
 				testfile, testfile, qcol, config['dhmrinfo']['qthr'], tmpfile
@@ -474,7 +474,7 @@ def mergedhmr(config, testfile, outfile):
 		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
 		sys.exit(-1)
 
-	if config['dhmrinfo']['method'] in [1, 2, 3]:
+	if config['dhmrinfo']['method'] in ['ttest', 'chisq', 'gtest']:
 		runcmd("bedtools merge -i %s -d %s -c 4,5,6,7,8 -o max,absmax,absmax,min,min -header | gzip -n > %s" % (tmpfile, config['dhmrinfo']['maxdistance'], outfile), echo=config['dhmrinfo']['verbose'])
 	else:
 		runcmd("bedtools merge -i %s -d %s -c 4,5,6,7,8,9 -o max,absmax,absmax,absmax,min,min -header | gzip -n > %s" % (tmpfile, config['dhmrinfo']['maxdistance'], outfile), echo=config['dhmrinfo']['verbose'])
@@ -485,11 +485,11 @@ def dhmr_run(config, statfile, counttablefile):
 	if 'testfile' in config['dhmrinfo']:
 		testfile = os.path.join(config['resultdir'], config['dhmrinfo']['testfile'])
 	if not os.path.exists(testfile):
-		if config['dhmrinfo']['method'] == 1:
+		if config['dhmrinfo']['method'] == 'ttest':
 			ttest(config, statfile, counttablefile, testfile)
-		elif config['dhmrinfo']['method'] == 2:
+		elif config['dhmrinfo']['method'] == 'chisq':
 			chisq(config, statfile, counttablefile, testfile)
-		elif config['dhmrinfo']['method'] == 3:
+		elif config['dhmrinfo']['method'] == 'gtest':
 			gtest(config, statfile, counttablefile, testfile)
 		else:
 			nbtest(config, statfile, counttablefile, testfile)

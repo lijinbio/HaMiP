@@ -21,8 +21,8 @@ groupinfo:
   group2: wt
 resultdir: result
 aligninfo:
-  reference: /data/jin/resource/genome/fasta/hg38/hg38.fa.gz
-  spikein: /data/jin/resource/genome/fasta/mm10/mm10.fa.gz
+  reference: /data/hg38.fa
+  spikein: /data/mm10.fa
   fastqdir: test_data
   statfile: qcstats.txt
   barplotinfo:
@@ -34,17 +34,17 @@ aligninfo:
 genomescaninfo:
   readextension: True
   fragsize: 100
-  windowfile: result/hg38_w200.bed
+  windowfile: hg38_w200.bed
   referencename: hg38
   windowsize: 200
   readscount: False
   counttablefile: counttable.txt.gz
   verbose: True
 dhmrinfo:
-  method: 4
-  mindepth: 5
+  method: nbtest
+  mindepth: 4
   testfile: test.txt.gz
-  qthr: 1.05
+  qthr: 0.05
   maxdistance: 0
   dhmrfile: dhmr.txt.gz
   numthreads: 20
