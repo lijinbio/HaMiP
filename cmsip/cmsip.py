@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1.6"
+__version__ = "0.0.1.1.7"
 
 import os
 import sys
@@ -426,7 +426,7 @@ def nbtest(config, statfile, counttablefile, testfile):
 def align_run(config):
 	statfile = os.path.join(config['resultdir'], 'qcstats.txt')
 	if 'statfile' in config['aligninfo']:
-		statfile = os.path.join(config['resultdir'], config['aligninfo']['statfile'])
+		statfile = config['aligninfo']['statfile']
 	if not os.path.exists(statfile):
 		qcstats = {}
 		qcstats['mpstat'] = bsmap(config)
@@ -442,7 +442,7 @@ def align_run(config):
 def genomescan_run(config):
 	counttablefile=os.path.join(config['resultdir'], 'counttable.txt.gz')
 	if 'counttablefile' in config['genomescaninfo']:
-		counttablefile = os.path.join(config['resultdir'], config['genomescaninfo']['counttablefile'])
+		counttablefile = config['genomescaninfo']['counttablefile']
 	if not os.path.exists(counttablefile):
 		beddir=bamtobed(config)
 		if config['genomescaninfo']['readextension']:
@@ -483,7 +483,7 @@ def mergedhmr(config, testfile, outfile):
 def dhmr_run(config, statfile, counttablefile):
 	testfile=os.path.join(config['resultdir'], 'testfile.txt.gz')
 	if 'testfile' in config['dhmrinfo']:
-		testfile = os.path.join(config['resultdir'], config['dhmrinfo']['testfile'])
+		testfile = config['dhmrinfo']['testfile']
 	if not os.path.exists(testfile):
 		if config['dhmrinfo']['method'] == 'ttest':
 			ttest(config, statfile, counttablefile, testfile)
@@ -495,7 +495,7 @@ def dhmr_run(config, statfile, counttablefile):
 			nbtest(config, statfile, counttablefile, testfile)
 	dhmrfile=os.path.join(config['resultdir'], 'dhmr.txt.gz')
 	if 'dhmrfile' in config['dhmrinfo']:
-		dhmrfile = os.path.join(config['resultdir'], config['dhmrinfo']['dhmrfile'])
+		dhmrfile = config['dhmrinfo']['dhmrfile']
 	if not os.path.exists(dhmrfile):
 		mergedhmr(config, testfile, dhmrfile)
 
