@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.0.9"
+__version__ = "0.0.1.0"
 
 import os
 import sys
@@ -452,8 +452,12 @@ def genomescan_run(config):
 def mergedhmr(config, testfile, outfile):
 	runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['dhmrinfo']['verbose'])
 	tmpfile=outfile+'.bed'
-	cmd = "(printf '%%s\\n' chrom start end $(zcat %s | head -n 1 | cut -f 2-) | paste -s -d $'\\t'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $6<%s { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] OFS } for (j=2; j<=NF; j++) { printf $j ((j<NF)?OFS:ORS) } }' | sort -k 1,1 -k 2,2n -k 3,3n) > %s" % (
-			testfile, testfile, config['dhmrinfo']['qthr'], tmpfile
+
+	qcol=7
+	if config['dhmrinfo']['method'] in [1, 2, 3]:
+		qcol=6
+	cmd = "(printf '%%s\\n' chrom start end $(zcat %s | head -n 1 | cut -f 2-) | paste -s -d $'\\t'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $%s<%s { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] OFS } for (j=2; j<=NF; j++) { printf $j ((j<NF)?OFS:ORS) } }' | sort -k 1,1 -k 2,2n -k 3,3n) > %s" % (
+				testfile, testfile, qcol, config['dhmrinfo']['qthr'], tmpfile
 			)
 	if config['dhmrinfo']['verbose']:
 		print(cmd)
@@ -461,16 +465,12 @@ def mergedhmr(config, testfile, outfile):
 	if cp.returncode != 0:
 		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
 		sys.exit(-1)
+
 	if config['dhmrinfo']['method'] in [1, 2, 3]:
-		runcmd("bedtools merge -i %s -d %s -c 4,5,6,7,8 -o max,absmax,absmax,min,min -header | gzip -n > %s" % (
-			tmpfile, config['dhmrinfo']['maxdistance'], outfile
-			), echo=config['dhmrinfo']['verbose'])
-		runcmd('rm -f ' + tmpfile, echo=config['dhmrinfo']['verbose'])
+		runcmd("bedtools merge -i %s -d %s -c 4,5,6,7,8 -o max,absmax,absmax,min,min -header | gzip -n > %s" % (tmpfile, config['dhmrinfo']['maxdistance'], outfile), echo=config['dhmrinfo']['verbose'])
 	else:
-		runcmd("bedtools merge -i %s -d %s -c 4,5,6,7,8,9 -o max,absmax,absmax,absmax,min,min -header | gzip -n > %s" % (
-			tmpfile, config['dhmrinfo']['maxdistance'], outfile
-			), echo=config['dhmrinfo']['verbose'])
-		runcmd('rm -f ' + tmpfile, echo=config['dhmrinfo']['verbose'])
+		runcmd("bedtools merge -i %s -d %s -c 4,5,6,7,8,9 -o max,absmax,absmax,absmax,min,min -header | gzip -n > %s" % (tmpfile, config['dhmrinfo']['maxdistance'], outfile), echo=config['dhmrinfo']['verbose'])
+	runcmd('rm -f ' + tmpfile, echo=config['dhmrinfo']['verbose'])
 
 def dhmr_run(config, statfile, counttablefile):
 	testfile=os.path.join(config['resultdir'], 'testfile.txt.gz')
