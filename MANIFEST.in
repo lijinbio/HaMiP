@@ -4,3 +4,4 @@ include cmsip_flowchart.png
 include LICENSE
 include cmsip/perl/*.pl
 include cmsip/R/*.R
+include cms.yaml

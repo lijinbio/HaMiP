@@ -1,0 +1,51 @@
+sampleinfo:
+  - sampleid: TKO2PE1b2
+    group: tko
+    filenames:
+      - TKO2PE1b2_R1.fastq.gz
+  - sampleid: TKO2PE2m
+    group: tko
+    filenames:
+      - TKO2PE2b1_R1.fastq.gz
+      - TKO2PE2b1_R2.fastq.gz
+  - sampleid: WTPE1b2
+    group: wt
+    filenames:
+      - WTPE1b2_R1.fastq.gz
+  - sampleid: WTPE2b2
+    group: wt
+    filenames:
+      - WTPE2b2_R1.fastq.gz
+groupinfo:
+  group1: tko
+  group2: wt
+resultdir: result
+aligninfo:
+  reference: /data/jin/resource/genome/fasta/hg38/hg38.fa.gz
+  spikein: /data/jin/resource/genome/fasta/mm10/mm10.fa.gz
+  fastqdir: test_data
+  statfile: qcstats.txt
+  barplotinfo:
+    outfile: qcstats_twsn_barplot.pdf
+    height: 5
+    width: 5
+  numthreads: 20
+  verbose: True
+genomescaninfo:
+  readextension: True
+  fragsize: 100
+  windowfile: result/hg38_w200.bed
+  referencename: hg38
+  windowsize: 200
+  readscount: False
+  counttablefile: counttable.txt.gz
+  verbose: True
+dhmrinfo:
+  method: 4
+  mindepth: 5
+  testfile: test.txt.gz
+  qthr: 1.05
+  maxdistance: 0
+  dhmrfile: dhmr.txt.gz
+  numthreads: 20
+  verbose: True
