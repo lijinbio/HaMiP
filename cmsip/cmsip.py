@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1.8"
+__version__ = "0.0.1.1.9"
 
 import os
 import sys
@@ -408,13 +408,12 @@ def nbtest(config, statfile, counttablefile, testfile):
 	group2=group2sampleid[config['groupinfo']['group2']]
 	g1str = 'c(' + ', '.join(["'" + name + "'" for name in group1]) + ')'
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
-	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'nbtest.R')
 	windowsize=0
 	if not config['genomescaninfo']['readscount']:
 		windowsize=config['genomescaninfo']['windowsize']
-	cmd = "R --slave --no-save --no-restore --no-init-file -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"windowsize=%s\" -e \"condA='%s'\" -e \"condB='%s'\" -e \"outfile='%s'\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, windowsize, config['groupinfo']['group1'], config['groupinfo']['group2'], testfile, adjscript, rscript
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"windowsize=%s\" -e \"condA='%s'\" -e \"condB='%s'\" -e \"outfile='%s'\" -e \"source('%s')\"" % (
+			counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, windowsize, config['groupinfo']['group1'], config['groupinfo']['group2'], testfile, rscript
 			)
 	if config['dhmrinfo']['verbose']:
 		print(cmd)
