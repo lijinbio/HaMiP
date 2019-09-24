@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1.3"
+__version__ = "0.0.1.1.4"
 
 import os
 import sys
@@ -265,7 +265,7 @@ def readextension(config):
 	return outdir
 
 def fetchChromSizes(config):
-	outfile=os.path.join(config['resultdir'], 'genomefile.txt')
+	outfile=os.path.join(config['resultdir'], config['genomescaninfo']['referencename'] + '_genomefile.txt')
 	if os.path.exists(outfile):
 		return outfile
 	runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['genomescaninfo']['verbose'])
