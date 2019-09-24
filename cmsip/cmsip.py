@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1.4"
+__version__ = "0.0.1.1.5"
 
 import os
 import sys
@@ -280,7 +280,7 @@ import tempfile
 def tabulatereadcounts(config, windowfile, beddir, counttablefile):
 	if config['genomescaninfo']['verbose']:
 		print('==>tabulatereadcounts<==')
-	cntdir=tempfile.TemporaryDirectory(dir=config['resultdir'])
+	cntdir=tempfile.TemporaryDirectory(dir=config['resultdir']).name
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(beddir, sampleinfo['sampleid'] + '.bed')
 			outfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph')
@@ -303,7 +303,7 @@ def tabulatereadcounts(config, windowfile, beddir, counttablefile):
 def tabulatemeanwig(config, windowfile, genomefile, beddir, counttablefile):
 	if config['genomescaninfo']['verbose']:
 		print('==>tabulatemeanwig<==')
-	cntdir=tempfile.TemporaryDirectory(dir=config['resultdir'])
+	cntdir=tempfile.TemporaryDirectory(dir=config['resultdir']).name
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(beddir, sampleinfo['sampleid'] + '.bed')
 			covfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.genomecov.bedgraph')
