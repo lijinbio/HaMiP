@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1.7"
+__version__ = "0.0.1.1.8"
 
 import os
 import sys
@@ -485,6 +485,7 @@ def dhmr_run(config, statfile, counttablefile):
 	if 'testfile' in config['dhmrinfo']:
 		testfile = config['dhmrinfo']['testfile']
 	if not os.path.exists(testfile):
+		runcmd('mkdir -p ' + os.path.dirname(testfile), echo=config['dhmrinfo']['verbose'])
 		if config['dhmrinfo']['method'] == 'ttest':
 			ttest(config, statfile, counttablefile, testfile)
 		elif config['dhmrinfo']['method'] == 'chisq':
