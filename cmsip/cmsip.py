@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1.1"
+__version__ = "0.0.1.1.2"
 
 import os
 import sys
@@ -295,6 +295,8 @@ def tabulatereadcounts(config, windowfile, beddir, counttablefile):
 	fs=[os.path.join(cntdir, id+'.bedgraph') for id in sampleids]
 	runcmd('mkdir -p ' + os.path.dirname(counttablefile), echo=config['genomescaninfo']['verbose'])
 	runcmd("bedtools unionbedg -i %s -header -names %s | gzip -n > %s" % (' '.join(fs), ' '.join(sampleids), counttablefile), echo=config['genomescaninfo']['verbose'])
+	for sampleinfo in config['sampleinfo']:
+			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph'), echo=config['genomescaninfo']['verbose'])
 
 def tabulatemeanwig(config, windowfile, genomefile, beddir, counttablefile):
 	if config['genomescaninfo']['verbose']:
@@ -318,6 +320,9 @@ def tabulatemeanwig(config, windowfile, genomefile, beddir, counttablefile):
 	fs=[os.path.join(cntdir, id+'.bedgraph') for id in sampleids]
 	runcmd('mkdir -p ' + os.path.dirname(counttablefile), echo=config['genomescaninfo']['verbose'])
 	runcmd("bedtools unionbedg -i %s -header -names %s | gzip -n > %s" % (' '.join(fs), ' '.join(sampleids), counttablefile), echo=config['genomescaninfo']['verbose'])
+	for sampleinfo in config['sampleinfo']:
+			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.genomecov.bedgraph'), echo=config['genomescaninfo']['verbose'])
+			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph'), echo=config['genomescaninfo']['verbose'])
 
 def swapdict(d):
 	nd = {}
