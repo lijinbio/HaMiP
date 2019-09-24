@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1.2"
+__version__ = "0.0.1.1.3"
 
 import os
 import sys
@@ -276,10 +276,11 @@ def makewindows(genomefile, windowsize, windowfile):
 	runcmd('mkdir -p ' + os.path.dirname(windowfile))
 	runcmd('bedtools makewindows -g %s -w %s | sort -k 1,1 -k 2,2n -k 3,3n > %s' % (genomefile, windowsize, windowfile))
 
+import tempfile
 def tabulatereadcounts(config, windowfile, beddir, counttablefile):
 	if config['genomescaninfo']['verbose']:
 		print('==>tabulatereadcounts<==')
-	cntdir=os.path.join(config['resultdir'], 'readcounts')
+	cntdir=tempfile.TemporaryDirectory(dir=config['resultdir'])
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(beddir, sampleinfo['sampleid'] + '.bed')
 			outfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph')
@@ -297,11 +298,12 @@ def tabulatereadcounts(config, windowfile, beddir, counttablefile):
 	runcmd("bedtools unionbedg -i %s -header -names %s | gzip -n > %s" % (' '.join(fs), ' '.join(sampleids), counttablefile), echo=config['genomescaninfo']['verbose'])
 	for sampleinfo in config['sampleinfo']:
 			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph'), echo=config['genomescaninfo']['verbose'])
+	runcmd('rmdir --ignore-fail-on-non-empty ' + cntdir, echo=config['genomescaninfo']['verbose'])
 
 def tabulatemeanwig(config, windowfile, genomefile, beddir, counttablefile):
 	if config['genomescaninfo']['verbose']:
 		print('==>tabulatemeanwig<==')
-	cntdir=os.path.join(config['resultdir'], 'meanwig')
+	cntdir=tempfile.TemporaryDirectory(dir=config['resultdir'])
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(beddir, sampleinfo['sampleid'] + '.bed')
 			covfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.genomecov.bedgraph')
@@ -323,6 +325,7 @@ def tabulatemeanwig(config, windowfile, genomefile, beddir, counttablefile):
 	for sampleinfo in config['sampleinfo']:
 			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.genomecov.bedgraph'), echo=config['genomescaninfo']['verbose'])
 			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph'), echo=config['genomescaninfo']['verbose'])
+	runcmd('rmdir --ignore-fail-on-non-empty ' + cntdir, echo=config['genomescaninfo']['verbose'])
 
 def swapdict(d):
 	nd = {}
