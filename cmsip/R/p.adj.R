@@ -5,9 +5,7 @@ p.adj=function(
 	, alpha=0.1
 	, method='BH'
 	) {
-	lowerQuantile=mean(stats == 0)
-	if (lowerQuantile < .95) upperQuantile=.95 else upperQuantile=1
-	theta=seq(lowerQuantile, upperQuantile, length=50)
+	theta=seq(0, 0.99, length=50)
 	filtPadj=genefilter::filtered_p(
 		filter=stats
 		, test=pvalue
