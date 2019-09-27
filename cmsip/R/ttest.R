@@ -55,6 +55,8 @@ res=do.call(rbind
 		)
 	)
 res$padj=p.adj(res$baseMean, res$pvalue)
-res=na.omit(res)
+if (! keepNA) {
+	res=na.omit(res)
+}
 res=res[order(res$padj),]
 write.table(res, file=gzfile(outfile), quote=F, sep='\t', row.names=F)

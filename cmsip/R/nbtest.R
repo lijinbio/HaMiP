@@ -41,14 +41,14 @@ sizeFactors(dds) <- 1.0 / sf[names(f), 1]
 if (windowsize>0) {
 	sizeFactors(dds) <- 1.0 * windowsize / sf[names(f), 1]
 }
-
-res=na.omit(
-	data.frame(
-		results(
-			DESeq(dds)
-			, contrast=c(names(sample_table)[[2]], condA, condB)
-			)
+res=data.frame(
+	results(
+		DESeq(dds)
+		, contrast=c(names(sample_table)[[2]], condA, condB)
 		)
 	)
+if (! keepNA) {
+	res=na.omit(res)
+}
 res=res[order(res$padj),]
 write.table(cbind(symbol=rownames(res), res), file=gzfile(outfile), quote = F, sep = '\t', row.names = F)

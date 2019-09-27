@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.1.9"
+__version__ = "0.0.1.2"
 
 import os
 import sys
@@ -14,6 +14,19 @@ def runcmd(cmd, log=subprocess.PIPE, echo=False):
 		print('Running: ' + cmd)
 	try:
 		cp=subprocess.run('bash -c "%s"' % cmd, universal_newlines=True, shell=True, stdout=log, stderr=subprocess.STDOUT)
+		if cp.returncode != 0:
+			print('Error: %s failed.' % cmd, vars(cp), sep='\n', file=sys.stderr)
+			sys.exit(-1)
+	except OSError as e:
+		print("Execution failed: ", e, file=sys.stderr)
+		sys.exit(-1)
+	return cp
+
+def runcmdsh(cmd, log=subprocess.PIPE, echo=False):
+	if echo:
+		print('Running: ' + cmd)
+	try:
+		cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=log, stderr=subprocess.STDOUT)
 		if cp.returncode != 0:
 			print('Error: %s failed.' % cmd, vars(cp), sep='\n', file=sys.stderr)
 			sys.exit(-1)
@@ -121,11 +134,8 @@ def removeCommonReads(config):
 	return comm
 
 def totalwigsums_n(f):
-	cmd = "bedtools genomecov -ibam %s -bg | awk -e 'BEGIN { sum=0 } { sum += $4*($3-$2) } END { print sum }'" % f
-	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	if cp.returncode != 0:
-		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
-		sys.exit(-1)
+	cmd = "bedtools genomecov -ibam %s -bg | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { sum=0 } { sum += $4*($3-$2) } END { print sum }'" % f
+	cp=runcmdsh(cmd)
 	return int(cp.stdout.strip())
 
 def totalwigsums(config):
@@ -254,14 +264,9 @@ def readextension(config):
 		if os.path.exists(outfile):
 			continue
 		runcmd('mkdir -p ' + os.path.dirname(outfile))
-		cmd="awk -v FS='\t' -v OFS='\t' -v fragsize=%s -e '{ if ($6==\"+\") { $3=$2+fragsize } else if ($6==\"-\") { $2=$3-fragsize; if($2<0) { $2=0 } } print }' < %s > %s" % (
+		cmd="awk -v FS='\\t' -v OFS='\\t' -v fragsize=%s -e '{ if ($6==\"+\") { $3=$2+fragsize } else if ($6==\"-\") { $2=$3-fragsize; if($2<0) { $2=0 } } print }' < %s > %s" % (
 				config['genomescaninfo']['fragsize'], infile, outfile)
-		if config['genomescaninfo']['verbose']:
-			print(cmd)
-		cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		if cp.returncode != 0:
-			print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
-			sys.exit(-1)
+		runcmdsh(cmd, config['genomescaninfo']['verbose'])
 	return outdir
 
 def fetchChromSizes(config):
@@ -285,13 +290,8 @@ def tabulatereadcounts(config, windowfile, beddir, counttablefile):
 			infile=os.path.join(beddir, sampleinfo['sampleid'] + '.bed')
 			outfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph')
 			runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['genomescaninfo']['verbose'])
-			cmd = "bedtools coverage -a %s -b %s -counts | awk -v FS='\t' -v OFS='\t' -e '$4>0' > %s" % (windowfile, infile, outfile)
-			if config['genomescaninfo']['verbose']:
-				print(cmd)
-			cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			if cp.returncode != 0:
-				print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
-				sys.exit(-1)
+			cmd = "bedtools coverage -a %s -b %s -counts | awk -v FS='\\t' -v OFS='\\t' -e '$4>0' > %s" % (windowfile, infile, outfile)
+			runcmdsh(cmd, config['genomescaninfo']['verbose'])
 	sampleids=[sampleinfo['sampleid'] for sampleinfo in config['sampleinfo']]
 	fs=[os.path.join(cntdir, id+'.bedgraph') for id in sampleids]
 	runcmd('mkdir -p ' + os.path.dirname(counttablefile), echo=config['genomescaninfo']['verbose'])
@@ -311,13 +311,8 @@ def tabulatemeanwig(config, windowfile, genomefile, beddir, counttablefile):
 			runcmd("bedtools genomecov -i %s -g %s -bg > %s" % (infile, genomefile, covfile), echo=config['genomescaninfo']['verbose'])
 			outfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph')
 			runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['genomescaninfo']['verbose'])
-			cmd = "bedtools intersect -a %s -b %s -wo | awk -v FS='\t' -v OFS='\t' -e '{ print $1, $2, $3, $7*$8/%d }' | sort -k 1,1 -k 2,2n -k 3,3n | bedtools groupby -g 1,2,3 -c 4 -o sum > %s" % (windowfile, covfile, config['genomescaninfo']['windowsize'], outfile)
-			if config['genomescaninfo']['verbose']:
-				print(cmd)
-			cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			if cp.returncode != 0:
-				print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
-				sys.exit(-1)
+			cmd = "bedtools intersect -a %s -b %s -wo | awk -v FS='\\t' -v OFS='\\t' -e '{ print $1, $2, $3, $7*$8/%d }' | sort -k 1,1 -k 2,2n -k 3,3n | bedtools groupby -g 1,2,3 -c 4 -o sum > %s" % (windowfile, covfile, config['genomescaninfo']['windowsize'], outfile)
+			runcmdsh(cmd, config['genomescaninfo']['verbose'])
 	sampleids=[sampleinfo['sampleid'] for sampleinfo in config['sampleinfo']]
 	fs=[os.path.join(cntdir, id+'.bedgraph') for id in sampleids]
 	runcmd('mkdir -p ' + os.path.dirname(counttablefile), echo=config['genomescaninfo']['verbose'])
@@ -347,15 +342,10 @@ def ttest(config, statfile, counttablefile, testfile):
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
 	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'ttest.R')
-	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			config['dhmrinfo']['numthreads'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, adjscript, rscript
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
+			config['dhmrinfo']['numthreads'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
 			)
-	if config['dhmrinfo']['verbose']:
-		print(cmd)
-	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	if cp.returncode != 0:
-		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
-		sys.exit(-1)
+	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
 def chisq(config, statfile, counttablefile, testfile):
 	if config['dhmrinfo']['verbose']:
@@ -368,15 +358,10 @@ def chisq(config, statfile, counttablefile, testfile):
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
 	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'chisq.R')
-	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			config['dhmrinfo']['numthreads'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, adjscript, rscript
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
+			config['dhmrinfo']['numthreads'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
 			)
-	if config['dhmrinfo']['verbose']:
-		print(cmd)
-	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	if cp.returncode != 0:
-		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
-		sys.exit(-1)
+	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
 def gtest(config, statfile, counttablefile, testfile):
 	if config['dhmrinfo']['verbose']:
@@ -389,15 +374,10 @@ def gtest(config, statfile, counttablefile, testfile):
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
 	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'gtest.R')
-	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			config['dhmrinfo']['numthreads'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, adjscript, rscript
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
+			config['dhmrinfo']['numthreads'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
 			)
-	if config['dhmrinfo']['verbose']:
-		print(cmd)
-	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	if cp.returncode != 0:
-		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
-		sys.exit(-1)
+	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
 def nbtest(config, statfile, counttablefile, testfile):
 	if config['dhmrinfo']['verbose']:
@@ -412,15 +392,10 @@ def nbtest(config, statfile, counttablefile, testfile):
 	windowsize=0
 	if not config['genomescaninfo']['readscount']:
 		windowsize=config['genomescaninfo']['windowsize']
-	cmd = "R --slave --no-save --no-restore --no-init-file -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"windowsize=%s\" -e \"condA='%s'\" -e \"condB='%s'\" -e \"outfile='%s'\" -e \"source('%s')\"" % (
-			counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, windowsize, config['groupinfo']['group1'], config['groupinfo']['group2'], testfile, rscript
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"windowsize=%s\" -e \"condA='%s'\" -e \"condB='%s'\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\"" % (
+			counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, windowsize, config['groupinfo']['group1'], config['groupinfo']['group2'], testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', rscript
 			)
-	if config['dhmrinfo']['verbose']:
-		print(cmd)
-	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	if cp.returncode != 0:
-		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
-		sys.exit(-1)
+	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
 def align_run(config):
 	statfile = os.path.join(config['resultdir'], 'qcstats.txt')
@@ -458,26 +433,31 @@ def genomescan_run(config):
 
 def mergedhmr(config, testfile, outfile):
 	runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['dhmrinfo']['verbose'])
-	tmpfile=outfile+'.bed'
+	hyperfile=outfile+'.hyper.bed'
+	hypofile=outfile+'.hypo.bed'
 
 	qcol=7
 	if config['dhmrinfo']['method'] in ['ttest', 'chisq', 'gtest']:
 		qcol=6
-	cmd = "(printf '%%s\\n' chrom start end $(zcat %s | head -n 1 | cut -f 2-) | paste -s -d $'\\t'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $%s<%s { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] OFS } for (j=2; j<=NF; j++) { printf $j ((j<NF)?OFS:ORS) } }' | sort -k 1,1 -k 2,2n -k 3,3n) > %s" % (
-				testfile, testfile, qcol, config['dhmrinfo']['qthr'], tmpfile
+
+	cmd = "(printf '%%s\\n' chrom start end $(zcat %s | head -n 1 | cut -f 2-) | paste -s -d $'\\t'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $%s<%s && $3>0 { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] OFS } for (j=2; j<=NF; j++) { printf $j ((j<NF)?OFS:ORS) } }' | sort -k 1,1 -k 2,2n -k 3,3n) > %s" % (
+				testfile, testfile, qcol, config['dhmrinfo']['qthr'], hyperfile
 			)
-	if config['dhmrinfo']['verbose']:
-		print(cmd)
-	cp=subprocess.run(cmd, universal_newlines=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	if cp.returncode != 0:
-		print('Error: %s failed.' % cmd, vars(cp), file=sys.stderr)
-		sys.exit(-1)
+	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
+	cmd = "(printf '%%s\\n' chrom start end $(zcat %s | head -n 1 | cut -f 2-) | paste -s -d $'\\t'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $%s<%s && $3<0 { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] OFS } for (j=2; j<=NF; j++) { printf $j ((j<NF)?OFS:ORS) } }' | sort -k 1,1 -k 2,2n -k 3,3n) > %s" % (
+				testfile, testfile, qcol, config['dhmrinfo']['qthr'], hypofile
+			)
 
 	if config['dhmrinfo']['method'] in ['ttest', 'chisq', 'gtest']:
-		runcmd("bedtools merge -i %s -d %s -c 4,5,6,7,8 -o max,absmax,absmax,min,min -header | gzip -n > %s" % (tmpfile, config['dhmrinfo']['maxdistance'], outfile), echo=config['dhmrinfo']['verbose'])
+		runcmd("(head -n 1 %s; (bedtools merge -i %s -d %s -c 4,5,6,7,8 -o max,max,max,min,min -header | tail -n +2; bedtools merge -i %s -d %s -c 4,5,6,7,8 -o max,min,max,min,min -header | tail -n +2) | sort -k 8,8g ) | gzip -n > %s" % (
+			hyperfile, hyperfile, config['dhmrinfo']['maxdistance'], hypofile, config['dhmrinfo']['maxdistance'], outfile
+			), echo=config['dhmrinfo']['verbose'])
 	else:
 		runcmd("bedtools merge -i %s -d %s -c 4,5,6,7,8,9 -o max,absmax,absmax,absmax,min,min -header | gzip -n > %s" % (tmpfile, config['dhmrinfo']['maxdistance'], outfile), echo=config['dhmrinfo']['verbose'])
-	runcmd('rm -f ' + tmpfile, echo=config['dhmrinfo']['verbose'])
+		runcmd("(head -n 1 %s; (bedtools merge -i %s -d %s -c 4,5,6,7,8,9 -o max,max,max,max,min,min -header | tail -n +2; bedtools merge -i %s -d %s -c 4,5,6,7,8,9 -o max,min,max,min,min,min -header | tail -n +2) | sort -k 9,9g ) | gzip -n > %s" % (
+			hyperfile, hyperfile, config['dhmrinfo']['maxdistance'], hypofile, config['dhmrinfo']['maxdistance'], outfile
+			), echo=config['dhmrinfo']['verbose'])
+	runcmd('rm -f %s %s' % (hyperfile, hypofile), echo=config['dhmrinfo']['verbose'])
 
 def dhmr_run(config, statfile, counttablefile):
 	testfile=os.path.join(config['resultdir'], 'testfile.txt.gz')
@@ -539,6 +519,10 @@ def main():
 		, nargs='+'
 		, type=lambda kv: re.split('=', kv)
 		, help='Define variable=value to suppress configuration file. e.g.\n"-D dhmrinfo.verbose=False"'
+		)
+	parser.add_argument('-v', '--version'
+		, action='version'
+		, version='%(prog)s ' + __version__
 		)
 	args = parser.parse_args()
 	config=yaml.load(args.config, Loader=yaml.FullLoader)

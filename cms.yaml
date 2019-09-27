@@ -49,3 +49,4 @@ dhmrinfo:
   dhmrfile: dhmr.txt.gz
   numthreads: 20
   verbose: True
+  keepNA: False
