@@ -17,29 +17,34 @@ rownames(sf) = sf[, 1]
 sf[, 1]=NULL
 
 f=t(t(f) * sf[names(f), 1])
-tblA=f[, group1, drop=F]
-tblB=f[, group2, drop=F]
+f=f[, c(group1, group2), drop=F]
+f=split(f, rep(1:nsplit, ceiling(nrow(f)/nsplit))[1:nrow(f)])
 
 res=do.call(rbind
 	, parallel::mclapply(
-		symbls
-		, function (rname) {
-			x=unname(unlist(tblA[rname, ]))
-			y=unname(unlist(tblB[rname, ]))
-			lfc=log2(
-				(mean(x)+0.001) / (mean(y)+0.001)
-				)
-			tmp=chisq.test(c(sum(x), sum(y))
-				, p=c(length(x), length(y))
-				, rescale.p=T)
-			data.frame(
-				symbol=rname
-				, baseMean=mean(c(x, y))
-				, lfc=lfc
-				, statistic=tmp$statistic
-				, pvalue=tmp$p.value
-				)
-		}
+		f
+		, function (subf) {
+			do.call(rbind
+				, apply(
+					subf
+					, 1
+					, function(rvalues) {
+						x=rvalues[group1]
+						y=rvalues[group2]
+						lfc=log2(
+							(mean(x)+0.001) / (mean(y)+0.001)
+							)
+						tmp=chisq.test(c(sum(x), sum(y))
+							, p=c(length(x), length(y))
+							, rescale.p=T)
+						data.frame(
+							baseMean=mean(c(x, y))
+							, lfc=lfc
+							, statistic=tmp$statistic
+							, pvalue=tmp$p.value
+							)
+					})
+				)}
 		, mc.cores=numthreads
 		)
 	)
@@ -48,4 +53,4 @@ if (! keepNA) {
 	res=na.omit(res)
 }
 res=res[order(res$padj),]
-write.table(res, file=gzfile(outfile), quote=F, sep='\t', row.names=F)
+write.table(cbind(symbol=rownames(res), res), file=gzfile(outfile), quote=F, sep='\t', row.names=F)

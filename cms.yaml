@@ -47,6 +47,7 @@ dhmrinfo:
   qthr: 0.05
   maxdistance: 0
   dhmrfile: dhmr.txt.gz
-  numthreads: 20
+  numthreads: 24
+  nsplit: 50000
   verbose: True
   keepNA: False

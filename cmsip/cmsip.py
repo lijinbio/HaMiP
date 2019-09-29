@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.3"
+__version__ = "0.0.1.4"
 
 import os
 import sys
@@ -346,8 +346,8 @@ def ttest(config, statfile, counttablefile, testfile):
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
 	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'ttest.R')
-	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			config['dhmrinfo']['numthreads'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"nsplit=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
+			config['dhmrinfo']['numthreads'], config['dhmrinfo']['nsplit'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
 			)
 	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
@@ -362,8 +362,8 @@ def chisq(config, statfile, counttablefile, testfile):
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
 	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'chisq.R')
-	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			config['dhmrinfo']['numthreads'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"nsplit=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
+			config['dhmrinfo']['numthreads'], config['dhmrinfo']['nsplit'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
 			)
 	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
@@ -378,8 +378,8 @@ def gtest(config, statfile, counttablefile, testfile):
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
 	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'gtest.R')
-	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			config['dhmrinfo']['numthreads'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"nsplit=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
+			config['dhmrinfo']['numthreads'], config['dhmrinfo']['nsplit'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
 			)
 	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
