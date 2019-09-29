@@ -1,11 +1,9 @@
 # vim: set noexpandtab tabstop=2:
 
 f=read.table(infile, header=T, sep='\t', quote="", check.names=F, comment.char='#', stringsAsFactors=F)
-symbls=sprintf('%s:%d-%d', f$chrom, f$start, f$end)
-rownames(f)=symbls
+rownames(f)=sprintf('%s:%d-%d', f$chrom, f$start, f$end)
 f=f[, c(group1, group2), drop=F]
 f=subset(f, rowSums(f)>=mindepth)
-symbls=rownames(f)
 
 if(nrow(f)<1) {
 	write(sprintf('Warning: no regions left under mindepth=%d\n', mindepth), stderr())
@@ -16,14 +14,13 @@ sf=read.table(sf_file, header=T, sep='\t', stringsAsFactors=F)[, c('sample_id', 
 rownames(sf) = sf[, 1]
 sf[, 1]=NULL
 
-f=t(t(f) * sf[names(f), 1])
-f=f[, c(group1, group2), drop=F]
+f=as.data.frame(t(t(f) * sf[names(f), 1]))
 f=split(f, rep(1:nsplit, ceiling(nrow(f)/nsplit))[1:nrow(f)])
 
 suppressPackageStartupMessages(library(RVAideMemoire))
 res=do.call(rbind
 	, parallel::mclapply(
-		f
+		unname(f)
 		, function (subf) {
 			do.call(rbind
 				, apply(
