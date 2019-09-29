@@ -12,8 +12,6 @@ if(nrow(f)<1) {
 	q()
 }
 
-write(sprintf('%d regions with depth >= %d\n', nrow(f), mindepth), stderr())
-
 sf=read.table(sf_file, header=T, sep='\t', stringsAsFactors=F)[, c('sample_id', 'sizefactors'), drop=F]
 rownames(sf) = sf[, 1]
 sf[, 1]=NULL
@@ -26,7 +24,6 @@ res=do.call(rbind
 	, parallel::mclapply(
 		symbls
 		, function (rname) {
-			write(rname, stderr())
 			x=unname(unlist(tblA[rname, ]))
 			y=unname(unlist(tblB[rname, ]))
 			lfc=log2(

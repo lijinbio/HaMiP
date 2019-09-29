@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.2"
+__version__ = "0.0.1.3"
 
 import os
 import sys
@@ -35,10 +35,13 @@ def runcmdsh(cmd, log=subprocess.PIPE, echo=False):
 		sys.exit(-1)
 	return cp
 
+def makedirectory(path, echo=False):
+	runcmd('mkdir -p %s' % (os.path.dirname(path) or '.'), echo=echo)
+
 def bsmap_runcmd(fname, refenece, numthread, outfile, verbose=False):
 	if os.path.exists(outfile):
 		return
-	runcmd('mkdir -p ' + os.path.dirname(outfile), echo=verbose)
+	makedirectory(outfile, verbose)
 	cmd = 'bsmap' + \
 		' -a ' + fname + \
 		' -d ' + refenece + \
@@ -110,7 +113,8 @@ def bsmap(config):
 
 def removeCommonReads_runcmd(infile1, infile2, outfile1, outfile2, verbose=False):
 	bin=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'perl', 'removeCommonRead.pl')
-	runcmd('mkdir -p ' + os.path.dirname(outfile1) + ' ' + os.path.dirname(outfile2), echo=verbose)
+	makedirectory(outfile1, verbose)
+	makedirectory(outfile2, verbose)
 	cmd = bin + ' ' + infile1 + ' ' + infile2 + \
 		' >(' + 'samtools view -bS - ' + ' -o ' + outfile1 + ' 2>/dev/null)' \
 		' >(' + 'samtools view -bS - ' + ' -o ' + outfile2 + ' 2>/dev/null)'
@@ -225,7 +229,7 @@ def barplot(config, tws):
 	ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, loc: '{:,}'.format(int(x))))
 	plt.bar(*zip(*tws.items()), width=0.5, color='blue')
 	plt.title('Normalized total wigsum')
-	runcmd('mkdir -p ' + os.path.dirname(outfile))
+	makedirectory(outfile)
 	plt.savefig(outfile, bbox_inches='tight')
 
 def removedupref(config):
@@ -236,7 +240,7 @@ def removedupref(config):
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(indir, sampleinfo['sampleid'] + '.bam')
 			outfile=os.path.join(outdir, sampleinfo['sampleid'] + '.bam')
-			runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['aligninfo']['verbose'])
+			makedirectory(outfile, config['aligninfo']['verbose'])
 			runcmd('samtools rmdup %s %s' % (infile, outfile), echo=config['aligninfo']['verbose'])
 
 def bamtobed(config):
@@ -249,7 +253,7 @@ def bamtobed(config):
 		outfile=os.path.join(outdir, sampleinfo['sampleid'] + '.bed')
 		if os.path.exists(outfile):
 			continue
-		runcmd('mkdir -p ' + os.path.dirname(outfile))
+		makedirectory(outfile)
 		runcmd('bedtools bamtobed -i %s > %s' % (infile, outfile))
 	return outdir
 
@@ -263,7 +267,7 @@ def readextension(config):
 		outfile=os.path.join(outdir, sampleinfo['sampleid'] + '.bed')
 		if os.path.exists(outfile):
 			continue
-		runcmd('mkdir -p ' + os.path.dirname(outfile))
+		makedirectory(outfile)
 		cmd="awk -v FS='\\t' -v OFS='\\t' -v fragsize=%s -e '{ if ($6==\"+\") { $3=$2+fragsize } else if ($6==\"-\") { $2=$3-fragsize; if($2<0) { $2=0 } } print }' < %s > %s" % (
 				config['genomescaninfo']['fragsize'], infile, outfile)
 		runcmdsh(cmd, config['genomescaninfo']['verbose'])
@@ -273,12 +277,12 @@ def fetchChromSizes(config):
 	outfile=os.path.join(config['resultdir'], config['genomescaninfo']['referencename'] + '_genomefile.txt')
 	if os.path.exists(outfile):
 		return outfile
-	runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['genomescaninfo']['verbose'])
+	makedirectory(outfile, config['genomescaninfo']['verbose'])
 	runcmd('fetchChromSizes %s > %s' % (config['genomescaninfo']['referencename'], outfile), echo=config['genomescaninfo']['verbose'])
 	return outfile
 
 def makewindows(genomefile, windowsize, windowfile):
-	runcmd('mkdir -p ' + os.path.dirname(windowfile))
+	makedirectory(windowfile)
 	runcmd('bedtools makewindows -g %s -w %s | sort -k 1,1 -k 2,2n -k 3,3n > %s' % (genomefile, windowsize, windowfile))
 
 import tempfile
@@ -289,12 +293,12 @@ def tabulatereadcounts(config, windowfile, beddir, counttablefile):
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(beddir, sampleinfo['sampleid'] + '.bed')
 			outfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph')
-			runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['genomescaninfo']['verbose'])
+			makedirectory(outfile, config['genomescaninfo']['verbose'])
 			cmd = "bedtools coverage -a %s -b %s -counts | awk -v FS='\\t' -v OFS='\\t' -e '$4>0' > %s" % (windowfile, infile, outfile)
 			runcmdsh(cmd, config['genomescaninfo']['verbose'])
 	sampleids=[sampleinfo['sampleid'] for sampleinfo in config['sampleinfo']]
 	fs=[os.path.join(cntdir, id+'.bedgraph') for id in sampleids]
-	runcmd('mkdir -p ' + os.path.dirname(counttablefile), echo=config['genomescaninfo']['verbose'])
+	makedirectory(counttablefile, config['genomescaninfo']['verbose'])
 	runcmd("bedtools unionbedg -i %s -header -names %s | gzip -n > %s" % (' '.join(fs), ' '.join(sampleids), counttablefile), echo=config['genomescaninfo']['verbose'])
 	for sampleinfo in config['sampleinfo']:
 			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph'), echo=config['genomescaninfo']['verbose'])
@@ -307,15 +311,15 @@ def tabulatemeanwig(config, windowfile, genomefile, beddir, counttablefile):
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(beddir, sampleinfo['sampleid'] + '.bed')
 			covfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.genomecov.bedgraph')
-			runcmd('mkdir -p ' + os.path.dirname(covfile), echo=config['genomescaninfo']['verbose'])
+			makedirectory(covfile, config['genomescaninfo']['verbose'])
 			runcmd("bedtools genomecov -i %s -g %s -bg > %s" % (infile, genomefile, covfile), echo=config['genomescaninfo']['verbose'])
 			outfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph')
-			runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['genomescaninfo']['verbose'])
+			makedirectory(outfile, config['genomescaninfo']['verbose'])
 			cmd = "bedtools intersect -a %s -b %s -wo | awk -v FS='\\t' -v OFS='\\t' -e '{ print $1, $2, $3, $7*$8/%d }' | sort -k 1,1 -k 2,2n -k 3,3n | bedtools groupby -g 1,2,3 -c 4 -o sum > %s" % (windowfile, covfile, config['genomescaninfo']['windowsize'], outfile)
 			runcmdsh(cmd, config['genomescaninfo']['verbose'])
 	sampleids=[sampleinfo['sampleid'] for sampleinfo in config['sampleinfo']]
 	fs=[os.path.join(cntdir, id+'.bedgraph') for id in sampleids]
-	runcmd('mkdir -p ' + os.path.dirname(counttablefile), echo=config['genomescaninfo']['verbose'])
+	makedirectory(counttablefile, config['genomescaninfo']['verbose'])
 	runcmd("bedtools unionbedg -i %s -header -names %s | gzip -n > %s" % (' '.join(fs), ' '.join(sampleids), counttablefile), echo=config['genomescaninfo']['verbose'])
 	for sampleinfo in config['sampleinfo']:
 			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.genomecov.bedgraph'), echo=config['genomescaninfo']['verbose'])
@@ -398,9 +402,7 @@ def nbtest(config, statfile, counttablefile, testfile):
 	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
 def align_run(config):
-	statfile = os.path.join(config['resultdir'], 'qcstats.txt')
-	if 'statfile' in config['aligninfo']:
-		statfile = config['aligninfo']['statfile']
+	statfile = config['aligninfo']['statfile'] if 'statfile' in config['aligninfo'] else os.path.join(config['resultdir'], 'qcstats.txt')
 	if not os.path.exists(statfile):
 		qcstats = {}
 		qcstats['mpstat'] = bsmap(config)
@@ -414,9 +416,7 @@ def align_run(config):
 	return statfile
 
 def genomescan_run(config):
-	counttablefile=os.path.join(config['resultdir'], 'counttable.txt.gz')
-	if 'counttablefile' in config['genomescaninfo']:
-		counttablefile = config['genomescaninfo']['counttablefile']
+	counttablefile= config['genomescaninfo']['counttablefile'] if 'counttablefile' in config['genomescaninfo'] else os.path.join(config['resultdir'], 'counttable.txt.gz')
 	if not os.path.exists(counttablefile):
 		beddir=bamtobed(config)
 		if config['genomescaninfo']['readextension']:
@@ -432,14 +432,11 @@ def genomescan_run(config):
 	return counttablefile
 
 def mergedhmr(config, testfile, outfile):
-	runcmd('mkdir -p ' + os.path.dirname(outfile), echo=config['dhmrinfo']['verbose'])
+	makedirectory(outfile, config['dhmrinfo']['verbose'])
 	hyperfile=outfile+'.hyper.bed'
 	hypofile=outfile+'.hypo.bed'
 
-	qcol=7
-	if config['dhmrinfo']['method'] in ['ttest', 'chisq', 'gtest']:
-		qcol=6
-
+	qcol = 6 if config['dhmrinfo']['method'] in ['ttest', 'chisq', 'gtest'] else 7
 	cmd = "(printf '%%s\\n' chrom start end $(zcat %s | head -n 1 | cut -f 2-) | paste -s -d $'\\t'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $%s<%s && $3>0 { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] OFS } for (j=2; j<=NF; j++) { printf $j ((j<NF)?OFS:ORS) } }' | sort -k 1,1 -k 2,2n -k 3,3n) > %s" % (
 				testfile, testfile, qcol, config['dhmrinfo']['qthr'], hyperfile
 			)
@@ -447,24 +444,22 @@ def mergedhmr(config, testfile, outfile):
 	cmd = "(printf '%%s\\n' chrom start end $(zcat %s | head -n 1 | cut -f 2-) | paste -s -d $'\\t'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $%s<%s && $3<0 { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] OFS } for (j=2; j<=NF; j++) { printf $j ((j<NF)?OFS:ORS) } }' | sort -k 1,1 -k 2,2n -k 3,3n) > %s" % (
 				testfile, testfile, qcol, config['dhmrinfo']['qthr'], hypofile
 			)
+	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
 	if config['dhmrinfo']['method'] in ['ttest', 'chisq', 'gtest']:
 		runcmd("(head -n 1 %s; (bedtools merge -i %s -d %s -c 4,5,6,7,8 -o max,max,max,min,min -header | tail -n +2; bedtools merge -i %s -d %s -c 4,5,6,7,8 -o max,min,max,min,min -header | tail -n +2) | sort -k 8,8g ) | gzip -n > %s" % (
 			hyperfile, hyperfile, config['dhmrinfo']['maxdistance'], hypofile, config['dhmrinfo']['maxdistance'], outfile
 			), echo=config['dhmrinfo']['verbose'])
 	else:
-		runcmd("bedtools merge -i %s -d %s -c 4,5,6,7,8,9 -o max,absmax,absmax,absmax,min,min -header | gzip -n > %s" % (tmpfile, config['dhmrinfo']['maxdistance'], outfile), echo=config['dhmrinfo']['verbose'])
 		runcmd("(head -n 1 %s; (bedtools merge -i %s -d %s -c 4,5,6,7,8,9 -o max,max,max,max,min,min -header | tail -n +2; bedtools merge -i %s -d %s -c 4,5,6,7,8,9 -o max,min,max,min,min,min -header | tail -n +2) | sort -k 9,9g ) | gzip -n > %s" % (
 			hyperfile, hyperfile, config['dhmrinfo']['maxdistance'], hypofile, config['dhmrinfo']['maxdistance'], outfile
 			), echo=config['dhmrinfo']['verbose'])
 	runcmd('rm -f %s %s' % (hyperfile, hypofile), echo=config['dhmrinfo']['verbose'])
 
 def dhmr_run(config, statfile, counttablefile):
-	testfile=os.path.join(config['resultdir'], 'testfile.txt.gz')
-	if 'testfile' in config['dhmrinfo']:
-		testfile = config['dhmrinfo']['testfile']
+	testfile = config['dhmrinfo']['testfile'] if 'testfile' in config['dhmrinfo'] else os.path.join(config['resultdir'], 'testfile.txt.gz')
 	if not os.path.exists(testfile):
-		runcmd('mkdir -p ' + os.path.dirname(testfile), echo=config['dhmrinfo']['verbose'])
+		makedirectory(testfile, config['dhmrinfo']['verbose'])
 		if config['dhmrinfo']['method'] == 'ttest':
 			ttest(config, statfile, counttablefile, testfile)
 		elif config['dhmrinfo']['method'] == 'chisq':
@@ -473,9 +468,7 @@ def dhmr_run(config, statfile, counttablefile):
 			gtest(config, statfile, counttablefile, testfile)
 		else:
 			nbtest(config, statfile, counttablefile, testfile)
-	dhmrfile=os.path.join(config['resultdir'], 'dhmr.txt.gz')
-	if 'dhmrfile' in config['dhmrinfo']:
-		dhmrfile = config['dhmrinfo']['dhmrfile']
+	dhmrfile = config['dhmrinfo']['dhmrfile'] if 'dhmrfile' in config['dhmrinfo'] else os.path.join(config['resultdir'], 'dhmr.txt.gz')
 	if not os.path.exists(dhmrfile):
 		mergedhmr(config, testfile, dhmrfile)
 
