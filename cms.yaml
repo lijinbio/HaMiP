@@ -22,6 +22,7 @@ groupinfo:
 resultdir: result
 aligninfo:
   reference: /data/hg38.fa
+  usespikein: True
   spikein: /data/mm10.fa
   fastqdir: test_data
   statfile: qcstats.txt

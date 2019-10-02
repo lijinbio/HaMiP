@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.4"
+__version__ = "0.0.1.5"
 
 import os
 import sys
@@ -102,11 +102,12 @@ def bsmap_stat(config, reference):
 def bsmap(config):
 	if config['aligninfo']['verbose']:
 		print('==>bsmap<==')
-	bsmap_ref(config, 'reference')
-	bsmap_ref(config, 'spikein')
 	mpstat = {}
+	bsmap_ref(config, 'reference')
 	mpstat['reference'] = bsmap_stat(config, 'reference')
-	mpstat['spikein'] = bsmap_stat(config, 'spikein')
+	if config['aligninfo']['usespikein']:
+		bsmap_ref(config, 'spikein')
+		mpstat['spikein'] = bsmap_stat(config, 'spikein')
 	if config['aligninfo']['verbose']:
 		print(mpstat)
 	return mpstat
@@ -145,9 +146,9 @@ def totalwigsums_n(f):
 def totalwigsums(config):
 	if config['aligninfo']['verbose']:
 		print('==>totalwigsums<==')
-	inbasedir=os.path.join(config['resultdir'], 'removeCommonReads')
+	inbasedir=os.path.join(config['resultdir'], 'removeCommonReads' if config['aligninfo']['usespikein'] else 'bsmap')
 	twss = {}
-	for reference in ['reference', 'spikein']:
+	for reference in ['reference', 'spikein'] if config['aligninfo']['usespikein'] else ['reference']:
 		tws = {}
 		for sampleinfo in config['sampleinfo']:
 			f=os.path.join(inbasedir, reference, sampleinfo['sampleid'] + '.bam')
@@ -177,47 +178,76 @@ def normalizetwsref(tws, sizefactors, verbose=False):
 
 def saveQCstats(config, statfile, qcstats):
 	with open(statfile, 'w+') as f:
-		print('\t'.join((
-			'sample_id'
-			, 'total'
-			, 'unique_ref'
-			, 'ref/total'
-			, 'unique_spk'
-			, 'spk/total'
-			, 'comm'
-			, 'comm/total'
-			, 'comm/unique_ref'
-			, 'twss_spk'
-			, 'sizefactors'
-			, 'twss_ref'
-			, 'twss_ref_norm'
-			)), file=f)
-		for sampleinfo in config['sampleinfo']:
-			sampleid = sampleinfo['sampleid']
-			total = qcstats['mpstat']['reference'][sampleid][0]
-			unique_ref = qcstats['mpstat']['reference'][sampleid][2]
-			unique_spk = qcstats['mpstat']['spikein'][sampleid][2]
-			comm = qcstats['comm'][sampleid]
-			twss_spk = qcstats['twss']['spikein'][sampleid]
-			sizefactors = qcstats['sizefactors'][sampleid]
-			twss_ref = qcstats['twss']['reference'][sampleid]
-			twss_ref_norm = qcstats['twsrefnorm'][sampleid]
-			print('\t'.join(map(str
-				, (sampleid
-					, total
-					, unique_ref
-					, '{:.2%}'.format(unique_ref/total)
-					, unique_spk
-					, '{:.2%}'.format(unique_spk/total)
-					, comm
-					, '{:.2%}'.format(comm/total)
-					, '{:.2%}'.format(comm/unique_ref)
-					, twss_spk
-					, '{:.2f}'.format(sizefactors)
-					, twss_ref
-					, '{:.0f}'.format(twss_ref_norm)
-					)
+		if config['aligninfo']['usespikein']:
+			print('\t'.join((
+				'sample_id'
+				, 'total'
+				, 'unique_ref'
+				, 'ref/total'
+				, 'unique_spk'
+				, 'spk/total'
+				, 'comm'
+				, 'comm/total'
+				, 'comm/unique_ref'
+				, 'twss_spk'
+				, 'sizefactors'
+				, 'twss_ref'
+				, 'twss_ref_norm'
 				)), file=f)
+			for sampleinfo in config['sampleinfo']:
+				sampleid = sampleinfo['sampleid']
+				total = qcstats['mpstat']['reference'][sampleid][0]
+				unique_ref = qcstats['mpstat']['reference'][sampleid][2]
+				unique_spk = qcstats['mpstat']['spikein'][sampleid][2]
+				comm = qcstats['comm'][sampleid]
+				twss_spk = qcstats['twss']['spikein'][sampleid]
+				sizefactors = qcstats['sizefactors'][sampleid]
+				twss_ref = qcstats['twss']['reference'][sampleid]
+				twss_ref_norm = qcstats['twsrefnorm'][sampleid]
+				print('\t'.join(map(str
+					, (sampleid
+						, total
+						, unique_ref
+						, '{:.2%}'.format(unique_ref/total)
+						, unique_spk
+						, '{:.2%}'.format(unique_spk/total)
+						, comm
+						, '{:.2%}'.format(comm/total)
+						, '{:.2%}'.format(comm/unique_ref)
+						, twss_spk
+						, '{:.2f}'.format(sizefactors)
+						, twss_ref
+						, '{:.0f}'.format(twss_ref_norm)
+						)
+					)), file=f)
+		else:
+			print('\t'.join((
+				'sample_id'
+				, 'total'
+				, 'unique_ref'
+				, 'ref/total'
+				, 'twss_ref'
+				, 'sizefactors'
+				, 'twss_ref_norm'
+				)), file=f)
+			for sampleinfo in config['sampleinfo']:
+				sampleid = sampleinfo['sampleid']
+				total = qcstats['mpstat']['reference'][sampleid][0]
+				unique_ref = qcstats['mpstat']['reference'][sampleid][2]
+				twss_ref = qcstats['twss']['reference'][sampleid]
+				sizefactors = qcstats['sizefactors'][sampleid]
+				twss_ref_norm = qcstats['twsrefnorm'][sampleid]
+				print('\t'.join(map(str
+					, (sampleid
+						, total
+						, unique_ref
+						, '{:.2%}'.format(unique_ref/total)
+						, twss_spk
+						, twss_ref
+						, '{:.2f}'.format(sizefactors)
+						, '{:.0f}'.format(twss_ref_norm)
+						)
+					)), file=f)
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -235,7 +265,7 @@ def barplot(config, tws):
 def removedupref(config):
 	if config['aligninfo']['verbose']:
 		print('==>removedupref<==')
-	indir=os.path.join(config['resultdir'], 'removeCommonReads', 'reference')
+	indir=os.path.join(config['resultdir'], 'removeCommonReads' if config['aligninfo']['usespikein'] else 'bsmap', 'reference')
 	outdir=os.path.join(config['resultdir'], 'removedupref')
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(indir, sampleinfo['sampleid'] + '.bam')
@@ -406,9 +436,12 @@ def align_run(config):
 	if not os.path.exists(statfile):
 		qcstats = {}
 		qcstats['mpstat'] = bsmap(config)
-		qcstats['comm'] = removeCommonReads(config)
+		if config['aligninfo']['usespikein']:
+			qcstats['comm'] = removeCommonReads(config)
 		qcstats['twss'] = totalwigsums(config)
-		qcstats['sizefactors'] = estimateSizeFactors(qcstats['twss']['spikein'], config['aligninfo']['verbose'])
+		qcstats['sizefactors'] = estimateSizeFactors(
+				qcstats['twss']['spikein'] if config['aligninfo']['usespikein'] else qcstats['twss']['reference']
+				, config['aligninfo']['verbose'])
 		qcstats['twsrefnorm'] = normalizetwsref(qcstats['twss']['reference'], qcstats['sizefactors'], config['aligninfo']['verbose'])
 		saveQCstats(config, statfile, qcstats)
 		barplot(config, qcstats['twsrefnorm'])
