@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.5"
+__version__ = "0.0.1.6"
 
 import os
 import sys
@@ -376,7 +376,7 @@ def ttest(config, statfile, counttablefile, testfile):
 	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'ttest.R')
 	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"nsplit=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			config['dhmrinfo']['numthreads'], config['dhmrinfo']['nsplit'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
+			config['dhmrinfo']['numthreads'], config['dhmrinfo']['nsplit'], counttablefile, statfile, config['dhmrinfo']['meandepth']*(len(group1)+len(group2)), g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
 			)
 	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
@@ -392,7 +392,7 @@ def chisq(config, statfile, counttablefile, testfile):
 	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'chisq.R')
 	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"nsplit=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			config['dhmrinfo']['numthreads'], config['dhmrinfo']['nsplit'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
+			config['dhmrinfo']['numthreads'], config['dhmrinfo']['nsplit'], counttablefile, statfile, config['dhmrinfo']['meandepth']*(len(group1)+len(group2)), g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
 			)
 	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
@@ -408,7 +408,7 @@ def gtest(config, statfile, counttablefile, testfile):
 	adjscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'p.adj.R')
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'gtest.R')
 	cmd = "R --slave --no-save --no-restore --no-init-file -e \"numthreads=%s\" -e \"nsplit=%s\" -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\" -e \"source('%s')\"" % (
-			config['dhmrinfo']['numthreads'], config['dhmrinfo']['nsplit'], counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
+			config['dhmrinfo']['numthreads'], config['dhmrinfo']['nsplit'], counttablefile, statfile, config['dhmrinfo']['meandepth']*(len(group1)+len(group2)), g1str, g2str, testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', adjscript, rscript
 			)
 	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
@@ -426,7 +426,7 @@ def nbtest(config, statfile, counttablefile, testfile):
 	if not config['genomescaninfo']['readscount']:
 		windowsize=config['genomescaninfo']['windowsize']
 	cmd = "R --slave --no-save --no-restore --no-init-file -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"windowsize=%s\" -e \"condA='%s'\" -e \"condB='%s'\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\"" % (
-			counttablefile, statfile, config['dhmrinfo']['mindepth'], g1str, g2str, windowsize, config['groupinfo']['group1'], config['groupinfo']['group2'], testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', rscript
+			counttablefile, statfile, config['dhmrinfo']['meandepth']*(len(group1)+len(group2)), g1str, g2str, windowsize, config['groupinfo']['group1'], config['groupinfo']['group2'], testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', rscript
 			)
 	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
@@ -504,10 +504,45 @@ def dhmr_run(config, statfile, counttablefile):
 	if not os.path.exists(dhmrfile):
 		mergedhmr(config, testfile, dhmrfile)
 
+def inputfilter(config, counttablefile, testfile1, testfile2):
+	inputfilterfile=config['inputinfo']['inputfilterfile'] if 'inputfilterfile' in config['inputinfo'] else os.path.join(config['resultdir'], 'counttable_inputfilter.txt.gz')
+	if not os.path.exists(inputfilterfile):
+		keepregionfile=inputfilterfile + '.bed'
+		cmd="(zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s { print $1, $2, $3 }'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s { print $1, $2, $3 }') > %s" % (
+				testfile1, config['inputinfo']['qthr'], testfile2, config['inputinfo']['qthr'], keepregionfile
+				)
+		runcmdsh(cmd, echo=config['inputinfo']['verbose'])
+		runcmd("bedtools intersect -wa -a <(zcat %s) -b %s -header | gzip -n > %s" % (counttablefile, keepregionfile, inputfilterfile), echo=config['inputinfo']['verbose'])
+		runcmd('rm -f %s' % (keepregionfile), echo=config['inputinfo']['verbose'])
+	return inputfilterfile
+
 def run(config):
 	statfile=align_run(config)
 	counttablefile=genomescan_run(config)
-	dhmr_run(config, statfile, counttablefile)
+	if not config['useinput']:
+		dhmr_run(config, statfile, counttablefile)
+	else:
+		config_g1 = config
+		config_g1['groupinfo']['group1']=config['groupinfo']['group1']
+		config_g1['groupinfo']['group2']=config['inputinfo']['group1']
+		config_g1['dhmrinfo']['method']=config['inputinfo']['method']
+		config_g1['dhmrinfo']['testfile']=config['dhmrinfo']['testfile'] + '_group1.txt.gz'
+		config_g1['dhmrinfo']['dhmrfile']=config['dhmrinfo']['testfile'] + '_group1.dhmr.gz'
+		dhmr_run(config_g1, statfile, counttablefile)
+
+		config_g2 = config
+		config_g2['groupinfo']['group1']=config['groupinfo']['group2']
+		config_g2['groupinfo']['group2']=config['inputinfo']['group2']
+		config_g2['dhmrinfo']['method']=config['inputinfo']['method']
+		config_g2['dhmrinfo']['testfile']=config['dhmrinfo']['testfile'] + '_group2.txt.gz'
+		config_g2['dhmrinfo']['dhmrfile']=config['dhmrinfo']['testfile'] + '_group2.dhmr.gz'
+		dhmr_run(config_g2, statfile, counttablefile)
+
+		config['genomescaninfo']['counttablefile']=inputfilter(config
+				, config['genomescaninfo']['counttablefile']
+				, config_g1['dhmrinfo']['testfile']
+				, config_g2['dhmrinfo']['testfile'])
+		dhmr_run(config, statfile, counttablefile)
 
 def updatedefs(data, pars):
 	obj=data
