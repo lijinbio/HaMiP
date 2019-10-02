@@ -65,5 +65,9 @@ inputinfo:
   group2: IW
   method: gtest
   qthr: 0.05
+  testfile1: /data/result/gtest_extTrue_cntTrue_w200_G1VsInput.txt.gz
+  dhmrfile1: /data/result/gtest_extTrue_cntTrue_w200_G1VsInput.dhmr.gz
+  testfile2: /data/result/gtest_extTrue_cntTrue_w200_G2VsInput.txt.gz
+  dhmrfile2: /data/result/gtest_extTrue_cntTrue_w200_G2VsInput.dhmr.gz
   inputfilterfile: /data/result/extTrue_cntTrue_w200_inputfilter.txt.gz
   verbose: True
