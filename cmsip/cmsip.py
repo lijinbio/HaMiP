@@ -242,7 +242,6 @@ def saveQCstats(config, statfile, qcstats):
 						, total
 						, unique_ref
 						, '{:.2%}'.format(unique_ref/total)
-						, twss_spk
 						, twss_ref
 						, '{:.2f}'.format(sizefactors)
 						, '{:.0f}'.format(twss_ref_norm)
