@@ -504,47 +504,44 @@ def dhmr_run(config, statfile, counttablefile):
 	if not os.path.exists(dhmrfile):
 		mergedhmr(config, testfile, dhmrfile)
 
-def inputfilter(config, counttablefile, testfile1, testfile2):
-	inputfilterfile=config['inputinfo']['inputfilterfile'] if 'inputfilterfile' in config['inputinfo'] else os.path.join(config['resultdir'], 'counttable_inputfilter.txt.gz')
-	if not os.path.exists(inputfilterfile):
-		keepregionfile=inputfilterfile + '.bed'
-		cmd="(zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s { print $1, $2, $3 }'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s { print $1, $2, $3 }') | sort -k 1,1 -k 2,2n -k 3,3n | uniq > %s" % (
-				testfile1, config['inputinfo']['qthr'], testfile2, config['inputinfo']['qthr'], keepregionfile
-				)
-		runcmdsh(cmd, echo=config['inputinfo']['verbose'])
-		runcmd("bedtools intersect -wa -a <(zcat %s) -b %s -header | gzip -n > %s" % (counttablefile, keepregionfile, inputfilterfile), echo=config['inputinfo']['verbose'])
-		runcmd('rm -f %s' % (keepregionfile), echo=config['inputinfo']['verbose'])
-	return inputfilterfile
+def inputfilter(config, counttablefile, testfile1, testfile2, inputfilterfile):
+	keepregionfile=inputfilterfile + '.bed'
+	cmd="(zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s { print $1, $2, $3 }'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s { print $1, $2, $3 }') | sort -k 1,1 -k 2,2n -k 3,3n | uniq > %s" % (
+			testfile1, config['inputinfo']['qthr'], testfile2, config['inputinfo']['qthr'], keepregionfile
+			)
+	runcmdsh(cmd, echo=config['inputinfo']['verbose'])
+	runcmd("bedtools intersect -wa -a <(zcat %s) -b %s -header | gzip -n > %s" % (counttablefile, keepregionfile, inputfilterfile), echo=config['inputinfo']['verbose'])
+	runcmd('rm -f %s' % (keepregionfile), echo=config['inputinfo']['verbose'])
 
 def run(config):
 	statfile=align_run(config)
 	counttablefile=genomescan_run(config)
-	if not config['useinput']:
-		dhmr_run(config, statfile, counttablefile)
-	else:
-		testfile1=config['inputinfo']['testfile1'] if 'testfile1' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G1VsInput.txt.gz')
-		dhmrfile1=config['inputinfo']['dhmrfile1'] if 'dhmrfile1' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G1VsInput.dhmr.gz')
-		testfile2=config['inputinfo']['testfile2'] if 'testfile2' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G2VsInput.txt.gz')
-		dhmrfile2=config['inputinfo']['dhmrfile2'] if 'dhmrfile2' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G2VsInput.dhmr.gz')
-
-		config_g1 = config
-		config_g1['groupinfo']['group1']=config['groupinfo']['group1']
-		config_g1['groupinfo']['group2']=config['inputinfo']['group1']
-		config_g1['dhmrinfo']['method']=config['inputinfo']['method']
-		config_g1['dhmrinfo']['testfile']=testfile1
-		config_g1['dhmrinfo']['dhmrfile']=dhmrfile1
-		dhmr_run(config_g1, statfile, counttablefile)
-
-		config_g2 = config
-		config_g2['groupinfo']['group1']=config['groupinfo']['group2']
-		config_g2['groupinfo']['group2']=config['inputinfo']['group2']
-		config_g2['dhmrinfo']['method']=config['inputinfo']['method']
-		config_g1['dhmrinfo']['testfile']=testfile2
-		config_g1['dhmrinfo']['dhmrfile']=dhmrfile2
-		dhmr_run(config_g2, statfile, counttablefile)
-
-		config['genomescaninfo']['counttablefile']=inputfilter(config, config['genomescaninfo']['counttablefile'], testfile1, testfile2)
-		dhmr_run(config, statfile, counttablefile)
+	if config['useinput']:
+		inputfilterfile=config['inputinfo']['inputfilterfile'] if 'inputfilterfile' in config['inputinfo'] else os.path.join(config['resultdir'], 'counttable_inputfilter.txt.gz')
+		if not os.path.exists(inputfilterfile):
+			testfile1=config['inputinfo']['testfile1'] if 'testfile1' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G1VsInput.txt.gz')
+			dhmrfile1=config['inputinfo']['dhmrfile1'] if 'dhmrfile1' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G1VsInput.dhmr.gz')
+			if not os.path.exists(testfile1):
+				config_g1 = config
+				config_g1['groupinfo']['group1']=config['groupinfo']['group1']
+				config_g1['groupinfo']['group2']=config['inputinfo']['group1']
+				config_g1['dhmrinfo']['method']=config['inputinfo']['method']
+				config_g1['dhmrinfo']['testfile']=testfile1
+				config_g1['dhmrinfo']['dhmrfile']=dhmrfile1
+				dhmr_run(config_g1, statfile, counttablefile)
+			testfile2=config['inputinfo']['testfile2'] if 'testfile2' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G2VsInput.txt.gz')
+			dhmrfile2=config['inputinfo']['dhmrfile2'] if 'dhmrfile2' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G2VsInput.dhmr.gz')
+			if not os.path.exists(testfile2):
+				config_g2 = config
+				config_g2['groupinfo']['group1']=config['groupinfo']['group2']
+				config_g2['groupinfo']['group2']=config['inputinfo']['group2']
+				config_g2['dhmrinfo']['method']=config['inputinfo']['method']
+				config_g1['dhmrinfo']['testfile']=testfile2
+				config_g1['dhmrinfo']['dhmrfile']=dhmrfile2
+				dhmr_run(config_g2, statfile, counttablefile)
+			inputfilter(config, config['genomescaninfo']['counttablefile'], testfile1, testfile2, inputfilterfile)
+		config['genomescaninfo']['counttablefile']=inputfilterfile
+	dhmr_run(config, statfile, counttablefile)
 
 def updatedefs(data, pars):
 	obj=data
