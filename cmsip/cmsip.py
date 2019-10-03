@@ -522,7 +522,7 @@ def run(config):
 			testfile1=config['inputinfo']['testfile1'] if 'testfile1' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G1VsInput.txt.gz')
 			dhmrfile1=config['inputinfo']['dhmrfile1'] if 'dhmrfile1' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G1VsInput.dhmr.gz')
 			if not os.path.exists(testfile1):
-				config_g1 = config
+				config_g1 = config.copy()
 				config_g1['groupinfo']['group1']=config['groupinfo']['group1']
 				config_g1['groupinfo']['group2']=config['inputinfo']['group1']
 				config_g1['dhmrinfo']['method']=config['inputinfo']['method']
@@ -532,7 +532,7 @@ def run(config):
 			testfile2=config['inputinfo']['testfile2'] if 'testfile2' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G2VsInput.txt.gz')
 			dhmrfile2=config['inputinfo']['dhmrfile2'] if 'dhmrfile2' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G2VsInput.dhmr.gz')
 			if not os.path.exists(testfile2):
-				config_g2 = config
+				config_g2 = config.copy()
 				config_g2['groupinfo']['group1']=config['groupinfo']['group2']
 				config_g2['groupinfo']['group2']=config['inputinfo']['group2']
 				config_g2['dhmrinfo']['method']=config['inputinfo']['method']
