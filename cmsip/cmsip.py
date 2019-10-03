@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.6"
+__version__ = "0.0.1.7"
 
 import os
 import sys
@@ -506,13 +506,14 @@ def dhmr_run(config, statfile, counttablefile):
 
 def inputfilter(config, counttablefile, testfile1, testfile2, inputfilterfile):
 	keepregionfile=inputfilterfile + '.bed'
-	cmd="(zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s { print $1, $2, $3 }'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s { print $1, $2, $3 }') | sort -k 1,1 -k 2,2n -k 3,3n | uniq > %s" % (
+	cmd="(zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s && $3>0 { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] ((i<n)?OFS:ORS) } }'; zcat %s | awk -v FS='\\t' -v OFS='\\t' -e 'BEGIN { getline } $NF<%s && $3>0 { n=split($1, a, \"[:-]\"); for (i=1; i<=n; i++) { printf a[i] ((i<n)?OFS:ORS) } }') | sort -k 1,1 -k 2,2n -k 3,3n | uniq > %s" % (
 			testfile1, config['inputinfo']['qthr'], testfile2, config['inputinfo']['qthr'], keepregionfile
 			)
 	runcmdsh(cmd, echo=config['inputinfo']['verbose'])
 	runcmd("bedtools intersect -wa -a <(zcat %s) -b %s -header | gzip -n > %s" % (counttablefile, keepregionfile, inputfilterfile), echo=config['inputinfo']['verbose'])
 	runcmd('rm -f %s' % (keepregionfile), echo=config['inputinfo']['verbose'])
 
+import copy
 def run(config):
 	statfile=align_run(config)
 	counttablefile=genomescan_run(config)
@@ -522,7 +523,7 @@ def run(config):
 			testfile1=config['inputinfo']['testfile1'] if 'testfile1' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G1VsInput.txt.gz')
 			dhmrfile1=config['inputinfo']['dhmrfile1'] if 'dhmrfile1' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G1VsInput.dhmr.gz')
 			if not os.path.exists(testfile1):
-				config_g1 = config.copy()
+				config_g1 = copy.deepcopy(config)
 				config_g1['groupinfo']['group1']=config['groupinfo']['group1']
 				config_g1['groupinfo']['group2']=config['inputinfo']['group1']
 				config_g1['dhmrinfo']['method']=config['inputinfo']['method']
@@ -532,15 +533,15 @@ def run(config):
 			testfile2=config['inputinfo']['testfile2'] if 'testfile2' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G2VsInput.txt.gz')
 			dhmrfile2=config['inputinfo']['dhmrfile2'] if 'dhmrfile2' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G2VsInput.dhmr.gz')
 			if not os.path.exists(testfile2):
-				config_g2 = config.copy()
+				config_g2 = copy.deepcopy(config)
 				config_g2['groupinfo']['group1']=config['groupinfo']['group2']
 				config_g2['groupinfo']['group2']=config['inputinfo']['group2']
 				config_g2['dhmrinfo']['method']=config['inputinfo']['method']
-				config_g1['dhmrinfo']['testfile']=testfile2
-				config_g1['dhmrinfo']['dhmrfile']=dhmrfile2
+				config_g2['dhmrinfo']['testfile']=testfile2
+				config_g2['dhmrinfo']['dhmrfile']=dhmrfile2
 				dhmr_run(config_g2, statfile, counttablefile)
 			inputfilter(config, config['genomescaninfo']['counttablefile'], testfile1, testfile2, inputfilterfile)
-		config['genomescaninfo']['counttablefile']=inputfilterfile
+		counttablefile=inputfilterfile
 	dhmr_run(config, statfile, counttablefile)
 
 def updatedefs(data, pars):
