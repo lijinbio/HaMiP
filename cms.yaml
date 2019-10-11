@@ -56,7 +56,7 @@ dhmrinfo:
   maxdistance: 0
   dhmrfile: /data/result/gtest_extTrue_cntTrue_w200.dhmr.gz
   numthreads: 24
-  nsplit: 50000
+  nsplit: 1000
   verbose: True
   keepNA: True
 useinput: True
