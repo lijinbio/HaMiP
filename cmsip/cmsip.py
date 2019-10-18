@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.7"
+__version__ = "0.0.1.8"
 
 import os
 import sys
@@ -112,6 +112,43 @@ def bsmap(config):
 		print(mpstat)
 	return mpstat
 
+def mcall_stat_parse(infile):
+	with open(infile) as f:
+		dstr=f.read()
+	return float(re.search('bisulfite conversion ratio = ([\d.]+)', f).groups()[0])
+
+def mcall_runcmd(infile, outdir, sampleid, refenece, numthread, verbose=False):
+	if os.path.exists(outdir):
+		return
+	runcmd('mkdir -p %s' % outdir, echo=verbose)
+	linkfile=os.path.join(outdir, sampleid + '.bam')
+	cmd = 'ln -sf %s %s' % (infile, linkfile)
+	runcmd(cmd, log=open(linkfile+".stdout", 'w+'), echo=verbose)
+	cmd = 'cd %s && mcall -m %s -r %s --sampleName %s -p %s' % (os.path.dirname(linkfile), os.path.basename(linkfile), reference, sampleid, numthread)
+	runcmd(cmd, log=open(linkfile+".stdout", 'w+'), echo=verbose)
+	return mcall_stat_parse(linkfile+'_stat.txt')
+
+def mcall_ref(config, reference):
+	inbasedir=os.path.join(config['resultdir'], 'bsmap', reference)
+	outbasedir=os.path.join(config['resultdir'], 'mcall', reference)
+	stats = {}
+	for sampleinfo in config['sampleinfo']:
+		infile=os.path.join(inbasedir, sampleinfo['sampleid'] + '.bam')
+		outdir=os.path.join(outbasedir, sampleinfo['sampleid'])
+		stats[sampleinfo['sampleid']] = mcall_runcmd(infile, outdir, sampleinfo['sampleid'], config['aligninfo'][reference], config['aligninfo']['numthreads'], config['aligninfo']['verbose'])
+	return stats
+
+def mcall(config):
+	if config['aligninfo']['verbose']:
+		print('==>mcall<==')
+	mcstat = {}
+	mcstat['reference'] = mcall_ref(config, 'reference')
+	if config['aligninfo']['usespikein']:
+		mcstat['spikein'] = mcall_ref(config, 'spikein')
+	if config['aligninfo']['verbose']:
+		print(mcstat)
+	return mcstat
+
 def removeCommonReads_runcmd(infile1, infile2, outfile1, outfile2, verbose=False):
 	bin=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'perl', 'removeCommonRead.pl')
 	makedirectory(outfile1, verbose)
@@ -193,6 +230,8 @@ def saveQCstats(config, statfile, qcstats):
 				, 'sizefactors'
 				, 'twss_ref'
 				, 'twss_ref_norm'
+				, 'bsratio_ref'
+				, 'bsratio_spk'
 				)), file=f)
 			for sampleinfo in config['sampleinfo']:
 				sampleid = sampleinfo['sampleid']
@@ -204,6 +243,8 @@ def saveQCstats(config, statfile, qcstats):
 				sizefactors = qcstats['sizefactors'][sampleid]
 				twss_ref = qcstats['twss']['reference'][sampleid]
 				twss_ref_norm = qcstats['twsrefnorm'][sampleid]
+				bsratio_ref = qcstats['mcstat']['reference'][sampleid]
+				bsratio_spk = qcstats['mcstat']['spikein'][sampleid]
 				print('\t'.join(map(str
 					, (sampleid
 						, total
@@ -218,6 +259,8 @@ def saveQCstats(config, statfile, qcstats):
 						, '{:.2f}'.format(sizefactors)
 						, twss_ref
 						, '{:.0f}'.format(twss_ref_norm)
+						, '{:.6f}'.format(bsratio_ref)
+						, '{:.6f}'.format(bsratio_spk)
 						)
 					)), file=f)
 		else:
@@ -229,6 +272,7 @@ def saveQCstats(config, statfile, qcstats):
 				, 'twss_ref'
 				, 'sizefactors'
 				, 'twss_ref_norm'
+				, 'bsratio_ref'
 				)), file=f)
 			for sampleinfo in config['sampleinfo']:
 				sampleid = sampleinfo['sampleid']
@@ -237,6 +281,7 @@ def saveQCstats(config, statfile, qcstats):
 				twss_ref = qcstats['twss']['reference'][sampleid]
 				sizefactors = qcstats['sizefactors'][sampleid]
 				twss_ref_norm = qcstats['twsrefnorm'][sampleid]
+				bsratio_ref = qcstats['mcstat']['reference'][sampleid]
 				print('\t'.join(map(str
 					, (sampleid
 						, total
@@ -245,6 +290,7 @@ def saveQCstats(config, statfile, qcstats):
 						, twss_ref
 						, '{:.2f}'.format(sizefactors)
 						, '{:.0f}'.format(twss_ref_norm)
+						, '{:.6f}'.format(bsratio_ref)
 						)
 					)), file=f)
 
@@ -435,6 +481,7 @@ def align_run(config):
 	if not os.path.exists(statfile):
 		qcstats = {}
 		qcstats['mpstat'] = bsmap(config)
+		qcstats['mcstat'] = mcall(config)
 		if config['aligninfo']['usespikein']:
 			qcstats['comm'] = removeCommonReads(config)
 		qcstats['twss'] = totalwigsums(config)
