@@ -38,13 +38,13 @@ def runcmdsh(cmd, log=subprocess.PIPE, echo=False):
 def makedirectory(path, echo=False):
 	runcmd('mkdir -p %s' % (os.path.dirname(path) or '.'), echo=echo)
 
-def bsmap_runcmd(fname, refenece, numthread, outfile, verbose=False):
+def bsmap_runcmd(fname, reference, numthread, outfile, verbose=False):
 	if os.path.exists(outfile):
 		return
 	makedirectory(outfile, verbose)
 	cmd = 'bsmap' + \
 		' -a ' + fname + \
-		' -d ' + refenece + \
+		' -d ' + reference + \
 		' -R -n 1 -r 0 ' + \
 		' -p ' + str(numthread) + \
 		' -o ' + outfile
@@ -117,7 +117,7 @@ def mcall_stat_parse(infile):
 		dstr=f.read()
 	return float(re.search('bisulfite conversion ratio = ([\d.]+)', f).groups()[0])
 
-def mcall_runcmd(infile, outdir, sampleid, refenece, numthread, verbose=False):
+def mcall_runcmd(infile, outdir, sampleid, reference, numthread, verbose=False):
 	if os.path.exists(outdir):
 		return
 	runcmd('mkdir -p %s' % outdir, echo=verbose)
