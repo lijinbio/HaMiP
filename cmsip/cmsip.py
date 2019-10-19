@@ -115,7 +115,7 @@ def bsmap(config):
 def mcall_stat_parse(infile):
 	with open(infile) as f:
 		dstr=f.read()
-	return float(re.search('bisulfite conversion ratio = ([\d.]+)', f).groups()[0])
+	return float(re.search('bisulfite conversion ratio = ([\d.]+)', dstr).groups()[0])
 
 def mcall_runcmd(infile, outdir, sampleid, reference, numthread, verbose=False):
 	if os.path.exists(outdir):
