@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.8"
+__version__ = "0.0.1.9"
 
 import os
 import sys
@@ -564,7 +564,7 @@ import copy
 def run(config):
 	statfile=align_run(config)
 	counttablefile=genomescan_run(config)
-	if config['useinput']:
+	if 'useinput' in config and config['useinput']:
 		inputfilterfile=config['inputinfo']['inputfilterfile'] if 'inputfilterfile' in config['inputinfo'] else os.path.join(config['resultdir'], 'counttable_inputfilter.txt.gz')
 		if not os.path.exists(inputfilterfile):
 			testfile1=config['inputinfo']['testfile1'] if 'testfile1' in config['inputinfo'] else os.path.join(config['resultdir'], 'testfile_G1VsInput.txt.gz')
