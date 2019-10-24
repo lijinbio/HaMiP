@@ -124,7 +124,7 @@ def mcall_runcmd(infile, outdir, sampleid, reference, numthread, verbose=False):
 		return
 	runcmd('mkdir -p %s' % outdir, echo=verbose)
 	linkfile=os.path.join(outdir, sampleid + '.bam')
-	cmd = 'ln -sf %s %s' % (infile, linkfile)
+	cmd = 'ln -sf %s %s' % (os.path.abspath(infile), linkfile)
 	runcmd(cmd, log=open(linkfile+".stdout", 'w+'), echo=verbose)
 	cmd = 'cd %s && mcall -m %s -r %s --sampleName %s -p %s' % (os.path.dirname(linkfile), os.path.basename(linkfile), reference, sampleid, numthread)
 	runcmd(cmd, log=open(linkfile+".stdout", 'w+'), echo=verbose)
