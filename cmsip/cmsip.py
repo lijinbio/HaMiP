@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.1.9"
+__version__ = "0.0.2.0"
 
 import os
 import sys
@@ -82,21 +82,23 @@ def bsmap_stat(config, reference):
 	basedir=os.path.join(config['resultdir'], 'bsmap')
 	stats = {}
 	for sampleinfo in config['sampleinfo']:
-		if len(sampleinfo['filenames']) > 1:
+		if 'filenames' in sampleinfo['filenames'] and len(sampleinfo['filenames']) > 1:
 			totalr=0
 			alignedr=0
 			uniquer=0
 			for fname in sampleinfo['filenames']:
 				bname=os.path.splitext(os.path.splitext(os.path.basename(fname))[0])[0];
 				f=os.path.join(basedir, reference, 'single', bname + '.bam.stdout')
-				ftotalr, falignedr, funiquer = bsmap_stat_parse(f)
+				if os.path.exists(f):
+					ftotalr, falignedr, funiquer = bsmap_stat_parse(f)
 				totalr += ftotalr
 				alignedr += falignedr
 				uniquer += funiquer
 			stats[sampleinfo['sampleid']] = (totalr, alignedr, uniquer)
 		else:
 			f=os.path.join(basedir, reference, sampleinfo['sampleid'] + '.bam.stdout')
-			stats[sampleinfo['sampleid']] = bsmap_stat_parse(f)
+			if os.path.exists(f):
+				stats[sampleinfo['sampleid']] = bsmap_stat_parse(f)
 	return stats
 
 def bsmap(config):
