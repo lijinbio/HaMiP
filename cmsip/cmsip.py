@@ -474,7 +474,7 @@ def nbtest(config, statfile, counttablefile, testfile):
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
 	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'nbtest.R')
 	windowsize=0
-	if not config['genomescaninfo']['readscount']:
+	if 'readscount' in config['genomescaninfo'] and not config['genomescaninfo']['readscount']:
 		windowsize=config['genomescaninfo']['windowsize']
 	cmd = "R --slave --no-save --no-restore --no-init-file -e \"infile='%s'\" -e \"sf_file='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"windowsize=%s\" -e \"condA='%s'\" -e \"condB='%s'\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\"" % (
 			counttablefile, statfile, config['dhmrinfo']['meandepth']*(len(group1)+len(group2)), g1str, g2str, windowsize, config['groupinfo']['group1'], config['groupinfo']['group2'], testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', rscript
