@@ -82,7 +82,7 @@ def bsmap_stat(config, reference):
 	basedir=os.path.join(config['resultdir'], 'bsmap')
 	stats = {}
 	for sampleinfo in config['sampleinfo']:
-		if 'filenames' in sampleinfo['filenames'] and len(sampleinfo['filenames']) > 1:
+		if 'filenames' in sampleinfo and len(sampleinfo['filenames']) > 1:
 			totalr=0
 			alignedr=0
 			uniquer=0
