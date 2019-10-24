@@ -116,21 +116,22 @@ def bsmap(config):
 
 def mcall_stat_parse(infile):
 	if not os.path.exists(infile):
-		return 0.0
+		return 0
 	with open(infile) as f:
 		dstr=f.read()
 	return float(re.search('bisulfite conversion ratio = ([\d.]+)', dstr).groups()[0])
 
 def mcall_runcmd(infile, outdir, sampleid, reference, numthread, verbose=False):
-	if os.path.exists(outdir):
-		return
-	runcmd('mkdir -p %s' % outdir, echo=verbose)
 	linkfile=os.path.join(outdir, sampleid + '.bam')
+	statfile=linkfile+'_stat.txt'
+	if os.path.exists(statfile):
+		return mcall_stat_parse(statfile)
+	runcmd('mkdir -p %s' % outdir, echo=verbose)
 	cmd = 'ln -sf %s %s' % (os.path.abspath(infile), linkfile)
 	runcmd(cmd, log=open(linkfile+".stdout", 'w+'), echo=verbose)
 	cmd = 'cd %s && mcall -m %s -r %s --sampleName %s -p %s' % (os.path.dirname(linkfile), os.path.basename(linkfile), reference, sampleid, numthread)
 	runcmd(cmd, log=open(linkfile+".stdout", 'w+'), echo=verbose)
-	return mcall_stat_parse(linkfile+'_stat.txt')
+	return mcall_stat_parse(statfile)
 
 def mcall_ref(config, reference):
 	inbasedir=os.path.join(config['resultdir'], 'bsmap', reference)
