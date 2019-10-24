@@ -71,6 +71,8 @@ def bsmap_ref(config, reference):
 
 import re
 def bsmap_stat_parse(infile):
+	if not os.path.exists(infile):
+		return (0, 0, 0)
 	with open(infile) as f:
 		dstr=f.read()
 	totalreads=int(re.search('total reads: (\d+)', dstr).groups()[0])
@@ -89,16 +91,14 @@ def bsmap_stat(config, reference):
 			for fname in sampleinfo['filenames']:
 				bname=os.path.splitext(os.path.splitext(os.path.basename(fname))[0])[0];
 				f=os.path.join(basedir, reference, 'single', bname + '.bam.stdout')
-				if os.path.exists(f):
-					ftotalr, falignedr, funiquer = bsmap_stat_parse(f)
+				ftotalr, falignedr, funiquer = bsmap_stat_parse(f)
 				totalr += ftotalr
 				alignedr += falignedr
 				uniquer += funiquer
 			stats[sampleinfo['sampleid']] = (totalr, alignedr, uniquer)
 		else:
 			f=os.path.join(basedir, reference, sampleinfo['sampleid'] + '.bam.stdout')
-			if os.path.exists(f):
-				stats[sampleinfo['sampleid']] = bsmap_stat_parse(f)
+			stats[sampleinfo['sampleid']] = bsmap_stat_parse(f)
 	return stats
 
 def bsmap(config):
@@ -115,6 +115,8 @@ def bsmap(config):
 	return mpstat
 
 def mcall_stat_parse(infile):
+	if not os.path.exists(infile):
+		return 0.0
 	with open(infile) as f:
 		dstr=f.read()
 	return float(re.search('bisulfite conversion ratio = ([\d.]+)', dstr).groups()[0])
@@ -251,12 +253,12 @@ def saveQCstats(config, statfile, qcstats):
 					, (sampleid
 						, total
 						, unique_ref
-						, '{:.2%}'.format(unique_ref/total)
+						, '{:.2%}'.format(unique_ref/total) if total>0 else 'NA'
 						, unique_spk
-						, '{:.2%}'.format(unique_spk/total)
+						, '{:.2%}'.format(unique_spk/total) if total>0 else 'NA'
 						, comm
-						, '{:.2%}'.format(comm/total)
-						, '{:.2%}'.format(comm/unique_ref)
+						, '{:.2%}'.format(comm/total) if total>0 else 'NA'
+						, '{:.2%}'.format(comm/unique_ref) if unique_ref>0 else 'NA'
 						, twss_spk
 						, '{:.2f}'.format(sizefactors)
 						, twss_ref
@@ -288,7 +290,7 @@ def saveQCstats(config, statfile, qcstats):
 					, (sampleid
 						, total
 						, unique_ref
-						, '{:.2%}'.format(unique_ref/total)
+						, '{:.2%}'.format(unique_ref/total) if total>0 else 'NA'
 						, twss_ref
 						, '{:.2f}'.format(sizefactors)
 						, '{:.0f}'.format(twss_ref_norm)
