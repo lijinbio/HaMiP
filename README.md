@@ -24,55 +24,77 @@ Source URL: [https://github.com/lijinbio/cmsip](https://github.com/lijinbio/cmsi
 
 ```
 sampleinfo:
-  - sampleid: TKO2PE1b2
-    group: tko
+  - sampleid: K1
+    group: K
     filenames:
-      - TKO2PE1b2_R1.fastq.gz
-  - sampleid: TKO2PE2m
-    group: tko
+      - DKO1.CMS.fq.gz
+  - sampleid: K2
+    group: K
     filenames:
-      - TKO2PE2b1_R1.fastq.gz
-      - TKO2PE2b1_R2.fastq.gz
-  - sampleid: WTPE1b2
-    group: wt
+      - DKO2.CMS.fq.gz
+  - sampleid: W1
+    group: W
     filenames:
-      - WTPE1b2_R1.fastq.gz
-  - sampleid: WTPE2b2
-    group: wt
+      - WT1.CMS.fq.gz
+  - sampleid: W2
+    group: W
     filenames:
-      - WTPE2b2_R1.fastq.gz
+      - WT2.CMS.fq.gz
+  - sampleid: IK1
+    group: IK
+    filenames:
+      - DKO.input.fastq.gz
+  - sampleid: IW1
+    group: IW
+    filenames:
+      - WT.input.fastq.gz
 groupinfo:
-  group1: tko
-  group2: wt
-resultdir: result
+  group1: K
+  group2: W
+resultdir: /data/result
 aligninfo:
-  reference: /data/jin/resource/genome/fasta/hg38/hg38.fa.gz
-  spikein: /data/jin/resource/genome/fasta/mm10/mm10.fa.gz
-  fastqdir: test_data
+  reference: mm10.fa
+  usespikein: True
+  spikein: hg38.fa
+  fastqdir: /data/fastq
   statfile: qcstats.txt
   barplotinfo:
     outfile: qcstats_twsn_barplot.pdf
     height: 5
     width: 5
-  numthreads: 20
+  numthreads: 24
   verbose: True
 genomescaninfo:
   readextension: True
   fragsize: 100
-  windowfile: result/hg38_w200.bed
-  referencename: hg38
+  windowfile: /data/result/mm10_w200.bed
+  referencename: mm10
   windowsize: 200
-  readscount: False
-  counttablefile: counttable.txt.gz
+  readscount: True
+  counttablefile: /data/result/extTrue_cntTrue_w200.txt.gz
   verbose: True
 dhmrinfo:
-  method: 4
-  mindepth: 5
-  testfile: test.txt.gz
-  qthr: 1.05
+  method: gtest
+  meandepth: 1
+  testfile: /data/result/gtest_extTrue_cntTrue_w200.txt.gz
+  qthr: 0.05
   maxdistance: 0
-  dhmrfile: dhmr.txt.gz
-  numthreads: 20
+  dhmrfile: /data/result/gtest_extTrue_cntTrue_w200.dhmr.gz
+  numthreads: 24
+  nsplit: 1000
+  verbose: True
+  keepNA: True
+useinput: True
+inputinfo:
+  group1: IK
+  group2: IW
+  method: gtest
+  qthr: 0.05
+  testfile1: /data/result/gtest_extTrue_cntTrue_w200_G1VsInput.txt.gz
+  dhmrfile1: /data/result/gtest_extTrue_cntTrue_w200_G1VsInput.dhmr.gz
+  testfile2: /data/result/gtest_extTrue_cntTrue_w200_G2VsInput.txt.gz
+  dhmrfile2: /data/result/gtest_extTrue_cntTrue_w200_G2VsInput.dhmr.gz
+  inputfilterfile: /data/result/extTrue_cntTrue_w200_inputfilter.txt.gz
   verbose: True
 ```
 
