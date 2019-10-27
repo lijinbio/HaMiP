@@ -1,6 +1,0 @@
-# Make bins for genomes
-
-```hg38
-bedtools makewindows -g <(fetchChromSizes hg38) -w 100 > hg38_w100.bed
-```
-
