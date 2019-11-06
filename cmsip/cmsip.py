@@ -321,7 +321,7 @@ def removedupref(config):
 			infile=os.path.join(indir, sampleinfo['sampleid'] + '.bam')
 			outfile=os.path.join(outdir, sampleinfo['sampleid'] + '.bam')
 			makedirectory(outfile, config['aligninfo']['verbose'])
-			runcmd('samtools rmdup %s %s' % (infile, outfile), echo=config['aligninfo']['verbose'])
+			runcmd('samtools rmdup -s %s %s' % (infile, outfile), echo=config['aligninfo']['verbose'])
 
 def bamtobed(config):
 	if config['genomescaninfo']['verbose']:
