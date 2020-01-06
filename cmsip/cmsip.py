@@ -620,6 +620,14 @@ import pprint
 def main():
 	parser = argparse.ArgumentParser(
 		description='CMS-IP sequencing analysis'
+		, formatter_class=argparse.RawDescriptionHelpFormatter
+		, epilog='''
+Example:
+  cmsip -c cms.yaml
+
+Date: 2020/01/06
+Authors: Jin Li <lijin.abc@gmail.com>
+'''
 		)
 	parser.add_argument('-c', '--config'
 		, type=argparse.FileType('r')
