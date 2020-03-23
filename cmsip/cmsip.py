@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.2.1"
+__version__ = "0.0.2.2"
 
 import os
 import sys
@@ -481,6 +481,24 @@ def nbtest(config, statfile, counttablefile, testfile):
 			)
 	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
 
+def nbtest_sf(config, counttablefile, testfile):
+	if config['dhmrinfo']['verbose']:
+		print('==>nbtest_sf<==')
+	sampleid2group={sampleinfo['sampleid']:sampleinfo['group'] for sampleinfo in config['sampleinfo']}
+	group2sampleid=swapdict(sampleid2group)
+	group1=group2sampleid[config['groupinfo']['group1']]
+	group2=group2sampleid[config['groupinfo']['group2']]
+	g1str = 'c(' + ', '.join(["'" + name + "'" for name in group1]) + ')'
+	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
+	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'nbtest.R')
+	windowsize=0
+	if 'readscount' in config['genomescaninfo'] and not config['genomescaninfo']['readscount']:
+		windowsize=config['genomescaninfo']['windowsize']
+	cmd = "R --slave --no-save --no-restore --no-init-file -e \"infile='%s'\" -e \"mindepth=%d\" -e \"group1=%s\" -e \"group2=%s\" -e \"windowsize=%s\" -e \"condA='%s'\" -e \"condB='%s'\" -e \"outfile='%s'\" -e \"keepNA=%s\" -e \"source('%s')\"" % (
+			counttablefile, config['dhmrinfo']['meandepth']*(len(group1)+len(group2)), g1str, g2str, windowsize, config['groupinfo']['group1'], config['groupinfo']['group2'], testfile, 'T' if config['dhmrinfo']['keepNA'] else 'F', rscript
+			)
+	runcmdsh(cmd, echo=config['dhmrinfo']['verbose'])
+
 def align_run(config):
 	statfile = config['aligninfo']['statfile'] if 'statfile' in config['aligninfo'] else os.path.join(config['resultdir'], 'qcstats.txt')
 	if not os.path.exists(statfile):
@@ -550,6 +568,8 @@ def dhmr_run(config, statfile, counttablefile):
 			chisq(config, statfile, counttablefile, testfile)
 		elif config['dhmrinfo']['method'] == 'gtest':
 			gtest(config, statfile, counttablefile, testfile)
+		elif config['dhmrinfo']['method'] == 'nbtest_sf':
+			nbtest_sf(config, counttablefile, testfile)
 		else:
 			nbtest(config, statfile, counttablefile, testfile)
 	dhmrfile = config['dhmrinfo']['dhmrfile'] if 'dhmrfile' in config['dhmrinfo'] else os.path.join(config['resultdir'], 'dhmr.txt.gz')
@@ -625,7 +645,7 @@ def main():
 Example:
   cmsip -c cms.yaml
 
-Date: 2020/01/06
+Date: 2020/03/23
 Authors: Jin Li <lijin.abc@gmail.com>
 '''
 		)
