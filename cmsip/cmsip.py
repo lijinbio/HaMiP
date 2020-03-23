@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.2.2"
+__version__ = "0.0.2.3"
 
 import os
 import sys
@@ -490,7 +490,7 @@ def nbtest_sf(config, counttablefile, testfile):
 	group2=group2sampleid[config['groupinfo']['group2']]
 	g1str = 'c(' + ', '.join(["'" + name + "'" for name in group1]) + ')'
 	g2str = 'c(' + ', '.join(["'" + name + "'" for name in group2]) + ')'
-	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'nbtest.R')
+	rscript=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'R', 'nbtest_sf.R')
 	windowsize=0
 	if 'readscount' in config['genomescaninfo'] and not config['genomescaninfo']['readscount']:
 		windowsize=config['genomescaninfo']['windowsize']
