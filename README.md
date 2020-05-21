@@ -2,13 +2,11 @@
 
 A scalable, accurate, and efficient solution for hydroxymethylation analysis of CMS-IP sequencing data.
 
-Source URL: [https://github.com/lijinbio/cmsip](https://github.com/lijinbio/cmsip)
-
-![Workflow of CMSIP.](cmsip_flowchart.png)
+![Workflow of CMSIP.](https://github.com/lijinbio/cmsip/raw/master/cmsip_flowchart.png)
 
 ## Installation
 
-CMSIP has been deployed in Bioconda at https://anaconda.org/bioconda/cmsip. It is encouraged to install CMSIP from Bioconda, and the following channels should be added. Namely,
+CMSIP has been deployed in Bioconda at https://anaconda.org/bioconda/cmsip. It is encouraged to install CMSIP from Bioconda due to runtime dependencies will be installed automatically. The following channels should be added in Conda. Namely,
 
 ```
 conda config --add channels defaults
@@ -16,6 +14,35 @@ conda config --add channels bioconda
 conda config --add channels conda-forge
 conda install cmsip
 ```
+
+Alternatively, CMSIP has been also deployed in PyPI at https://pypi.org/project/cmsip, and it can be installed via `pip`.
+
+```
+pip3 install cmsip
+```
+
+In some cases, users want to build CMSIP from source code at https://github.com/lijinbio/cmsip. Below is an example installation steps.
+
+```
+git clone https://github.com/lijinbio/cmsip.git
+cd cmsip
+python3 setup.py install
+```
+
+In order to run CMSIP, the following dependent softwares are required.
+
+| Software | URL |
+|-------|-------|
+| python ($\ge3$) | https://www.python.org |
+| matplotlib | https://matplotlib.org |
+| pyyaml | https://pyyaml.org |
+| bedtools | https://bedtools.readthedocs.io |
+| R software | https://www.r-project.org |
+| R package DESeq2 | https://bioconductor.org/packages/release/bioc/html/DESeq2.html |
+| R package genefilter | https://bioconductor.org/packages/release/bioc/html/genefilter.html |
+| R package RVAideMemoire | https://cran.r-project.org/web/packages/RVAideMemoire/index.html |
+| Gawk | https://www.gnu.org/software/gawk |
+| MOABS | https://github.com/sunnyisgalaxy/moabs |
 
 ## Example configuration file
 
