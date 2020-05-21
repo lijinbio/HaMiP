@@ -6,7 +6,7 @@ A scalable, accurate, and efficient solution for hydroxymethylation analysis of 
 
 ## Installation
 
-CMSIP has been deployed in Bioconda at https://anaconda.org/bioconda/cmsip. It is encouraged to install CMSIP from Bioconda due to runtime dependencies will be installed automatically. The following channels should be added in Conda. Namely,
+CMSIP has been deployed in Bioconda at https://anaconda.org/bioconda/cmsip. It is encouraged to install CMSIP from Bioconda due to most runtime dependencies will be installed automatically. The following channels should be added in Conda. Namely,
 
 ```
 conda config --add channels defaults
@@ -44,8 +44,12 @@ In order to run CMSIP, the following dependent softwares are required.
 | Gawk | https://www.gnu.org/software/gawk |
 | MOABS | https://github.com/sunnyisgalaxy/moabs |
 
-## Example configuration file
+## Documentation
 
-An example configuration is [`cms.yaml`](https://github.com/lijinbio/cmsip/blob/master/cms.yaml) under the root of this repository.
+CMSIP takes in a configuration file for input data and program parameters. CMSIP can be run end-to-end, starting from raw FASTQ files to peak calling and differential hydroxymethylation identification. One can also start the pipeline from intermediate steps. For example, using alignment files as input so that mapping steps will be skipped.
+
+### Example configuration file
+
+An example configuration is [`cms.yaml`](https://github.com/lijinbio/cmsip/blob/master/cms.yaml) under the root of this repository at https://github.com/lijinbio/cmsip.
 
 

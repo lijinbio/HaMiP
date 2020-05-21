@@ -645,7 +645,7 @@ def main():
 Example:
   cmsip -c cms.yaml
 
-Date: 2020/03/23
+Date: 2020/05/20
 Authors: Jin Li <lijin.abc@gmail.com>
 '''
 		)
