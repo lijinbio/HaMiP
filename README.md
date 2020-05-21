@@ -21,7 +21,7 @@ Alternatively, CMSIP has been also deployed in PyPI at https://pypi.org/project/
 pip3 install cmsip
 ```
 
-In some cases, users want to build CMSIP from source code at https://github.com/lijinbio/cmsip. Below is an example installation steps.
+In some cases, users want to build CMSIP manually from source code at https://github.com/lijinbio/cmsip. Below is an example installation steps.
 
 ```
 git clone https://github.com/lijinbio/cmsip.git
@@ -29,7 +29,7 @@ cd cmsip
 python3 setup.py install
 ```
 
-In order to run CMSIP, the following dependent softwares are required.
+In order to run CMSIP after a manual installation, the following dependent softwares are required.
 
 | Software | URL |
 |-------|-------|
@@ -50,6 +50,6 @@ CMSIP takes in a configuration file for input data and program parameters. CMSIP
 
 ### Example configuration file
 
-An example configuration is [`cms.yaml`](https://github.com/lijinbio/cmsip/blob/master/cms.yaml) under the root of this repository at https://github.com/lijinbio/cmsip.
+An example configuration is [`cms.yaml`](https://github.com/lijinbio/cmsip/blob/master/cms.yaml) under the root of https://github.com/lijinbio/cmsip.
 
 
