@@ -33,9 +33,9 @@ In order to run CMSIP, the following dependent softwares are required.
 
 | Software | URL |
 |-------|-------|
-| python ($\ge3$) | https://www.python.org |
-| matplotlib | https://matplotlib.org |
-| pyyaml | https://pyyaml.org |
+| Python 3 | https://www.python.org |
+| Matplotlib | https://matplotlib.org |
+| PyYAML | https://pyyaml.org |
 | bedtools | https://bedtools.readthedocs.io |
 | R software | https://www.r-project.org |
 | R package DESeq2 | https://bioconductor.org/packages/release/bioc/html/DESeq2.html |
