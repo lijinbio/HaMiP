@@ -31,7 +31,7 @@ aligninfo:
   reference: mm10.fa
   usespikein: True
   spikein: hg38.fa
-  fastqdir: /data/fastq
+  rawdatadir: /data/fastq
   statfile: qcstats.txt
   barplotinfo:
     outfile: qcstats_twsn_barplot.pdf

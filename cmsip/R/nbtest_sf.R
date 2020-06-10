@@ -38,6 +38,8 @@ if (windowsize>0) {
 	sizeFactors(dds)=1.0*sizeFactors(dds)*windowsize
 }
 
+write.table(sizeFactors(dds), file=stdout(), quote=F, sep='\t', row.names=T, col.names=F)
+
 res=data.frame(
 	results(
 		DESeq(dds)
