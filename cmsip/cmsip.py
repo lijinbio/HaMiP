@@ -140,9 +140,7 @@ def mcall_runcmd(infile, outdir, sampleid, reference, numthread, verbose=False):
 	statfile=linkfile+'_stat.txt'
 	if os.path.exists(statfile):
 		return mcall_stat_parse(statfile)
-	runcmd('mkdir -p %s' % outdir, echo=verbose)
-	cmd = 'ln -sf %s %s' % (os.path.abspath(infile), linkfile)
-	runcmd(cmd, log=open(linkfile+".stdout", 'w+'), echo=verbose)
+	lnfile(os.path.abspath(infile), linkfile)
 	cmd = 'cd %s && mcall -m %s -r %s --sampleName %s -p %s' % (os.path.dirname(linkfile), os.path.basename(linkfile), reference, sampleid, numthread)
 	runcmd(cmd, log=open(linkfile+".stdout", 'w+'), echo=verbose)
 	return mcall_stat_parse(statfile)
@@ -154,7 +152,13 @@ def mcall_ref(config, reference):
 	for sampleinfo in config['sampleinfo']:
 		infile=os.path.join(inbasedir, sampleinfo['sampleid'] + '.bam')
 		outdir=os.path.join(outbasedir, sampleinfo['sampleid'])
-		stats[sampleinfo['sampleid']] = mcall_runcmd(infile, outdir, sampleinfo['sampleid'], config['aligninfo'][reference], config['aligninfo']['numthreads'], config['aligninfo']['verbose'])
+		stats[sampleinfo['sampleid']] = mcall_runcmd(infile
+				, outdir
+				, sampleinfo['sampleid']
+				, config['aligninfo'][reference]
+				, config['aligninfo']['numthreads']
+				, config['aligninfo']['verbose']
+				)
 	return stats
 
 def mcall(config):
