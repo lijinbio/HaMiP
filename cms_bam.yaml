@@ -1,28 +1,40 @@
 sampleinfo:
   - sampleid: K1
     group: K
-    filenames:
-      - /data/fastq/DKO1.CMS.fq.gz
+    reference:
+      - /data/bam/DKO1.CMS.bam
+    spikein:
+      - /data/bam/DKO1.CMS.spikein.bam
   - sampleid: K2
     group: K
-    filenames:
-      - /data/fastq/DKO2.CMS.fq.gz
+    reference:
+      - /data/bam/DKO2.CMS.bam
+    spikein:
+      - /data/bam/DKO2.CMS.spikein.bam
   - sampleid: W1
     group: W
-    filenames:
-      - /data/fastq/WT1.CMS.fq.gz
+    reference:
+      - /data/bam/WT1.CMS.bam
+    spikein:
+      - /data/bam/WT1.CMS.spikein.bam
   - sampleid: W2
     group: W
-    filenames:
-      - /data/fastq/WT2.CMS.fq.gz
+    reference:
+      - /data/bam/WT2.CMS.bam
+    spikein:
+      - /data/bam/WT2.CMS.spikein.bam
   - sampleid: IK1
     group: IK
-    filenames:
-      - /data/fastq/DKO.input.fastq.gz
+    reference:
+      - /data/bam/DKO.input.bam
+    spikein:
+      - /data/bam/DKO.input.spikein.bam
   - sampleid: IW1
     group: IW
-    filenames:
-      - /data/fastq/WT.input.fastq.gz
+    reference:
+      - /data/bam/WT.input.bam
+    spikein:
+      - /data/bam/WT.input.spikein.bam
 groupinfo:
   group1: K
   group2: W
@@ -30,7 +42,7 @@ resultdir: /data/result
 aligninfo:
   reference: mm10.fa
   usespikein: True
-  inputbam: False
+  inputbam: True
   spikein: hg38.fa
   statfile: qcstats.txt
   barplotinfo:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.2.5"
+__version__ = "0.0.2.6"
 
 import os
 import sys
@@ -64,23 +64,24 @@ def bsmap_ref(config, reference):
 		outfile=os.path.join(outbasedir, sampleinfo['sampleid'] + '.bam')
 		if os.path.exists(outfile):
 			continue
-		if len(sampleinfo['filenames']) > 1:
-			files = ''
-			for f in sampleinfo['filenames']:
-				bname=os.path.splitext(os.path.splitext(os.path.basename(f))[0])[0];
-				fname=os.path.join(config['aligninfo']['rawdatadir'], f)
-				singlefile=os.path.join(outbasedir, 'single', bname + '.bam')
-				if fname.endswith('.bam'):
-					lnfile(fname, singlefile)
-				else:
-					bsmap_runcmd(fname, config['aligninfo'][reference], config['aligninfo']['numthreads'], singlefile)
-				files += ' ' + singlefile
-			runcmd('samtools merge ' + outfile + ' ' + files, echo=config['aligninfo']['verbose'])
-		else:
-			fname=os.path.join(config['aligninfo']['rawdatadir'], sampleinfo['filenames'][0])
-			if fname.endswith('.bam'):
-				lnfile(fname, outfile, config['aligninfo']['verbose'])
+		if 'inputbam' in config['aligninfo'] and config['aligninfo']: # input BAM files
+			if len(sampleinfo[reference]) > 1:
+				runcmd('samtools merge ' + outfile + ' ' + ' '.join(sampleinfo[reference]), echo=config['aligninfo']['verbose'])
 			else:
+				fname=sampleinfo[reference][0]
+				lnfile(fname, outfile, config['aligninfo']['verbose'])
+		else:
+			if len(sampleinfo['filenames']) > 1:
+				files = ''
+				for f in sampleinfo['filenames']:
+					bname=os.path.splitext(os.path.splitext(os.path.basename(f))[0])[0];
+					fname=f
+					singlefile=os.path.join(outbasedir, 'single', bname + '.bam')
+					bsmap_runcmd(fname, config['aligninfo'][reference], config['aligninfo']['numthreads'], singlefile)
+					files += ' ' + singlefile
+				runcmd('samtools merge ' + outfile + ' ' + files, echo=config['aligninfo']['verbose'])
+			else:
+				fname=sampleinfo['filenames'][0]
 				bsmap_runcmd(fname, config['aligninfo'][reference], config['aligninfo']['numthreads'], outfile, config['aligninfo']['verbose'])
 
 import re
@@ -97,6 +98,8 @@ def bsmap_stat_parse(infile):
 def bsmap_stat(config, reference):
 	basedir=os.path.join(config['resultdir'], 'bsmap')
 	stats = {}
+	if 'inputbam' in config['aligninfo'] and config['aligninfo']:
+		return stats
 	for sampleinfo in config['sampleinfo']:
 		if 'filenames' in sampleinfo and len(sampleinfo['filenames']) > 1:
 			totalr=0
@@ -663,7 +666,7 @@ def main():
 Example:
   cmsip -c cms.yaml
 
-Date: 2020/06/09
+Date: 2020/06/10
 Authors: Jin Li <lijin.abc@gmail.com>
 '''
 		)
