@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.2.3"
+__version__ = "0.0.2.4"
 
 import os
 import sys
@@ -38,16 +38,24 @@ def runcmdsh(cmd, log=subprocess.PIPE, echo=False):
 def makedirectory(path, echo=False):
 	runcmd('mkdir -p %s' % (os.path.dirname(path) or '.'), echo=echo)
 
+def lnfile(infile, outfile, verbose=False):
+	if os.path.exists(outfile):
+		return
+	makedirectory(outfile, verbose)
+	runcmd('ln -sf %s %s' % (infile, outfile), echo=verbose)
+
 def bsmap_runcmd(fname, reference, numthread, outfile, verbose=False):
 	if os.path.exists(outfile):
 		return
 	makedirectory(outfile, verbose)
-	cmd = 'bsmap' + \
-		' -a ' + fname + \
-		' -d ' + reference + \
-		' -R -n 1 -r 0 ' + \
-		' -p ' + str(numthread) + \
-		' -o ' + outfile
+	cmd = 'bsmap -a %s -d %s -n 1 -r 0 -S 1234 -p %d -o %s' % (fname, reference, numthread, outfile)
+	runcmd(cmd, log=open(outfile+".stdout", 'w+'), echo=verbose)
+
+def bsmap_runcmd_pe(fname1, fname2, reference, numthread, outfile, verbose=False):
+	if os.path.exists(outfile):
+		return
+	makedirectory(outfile, verbose)
+	cmd = 'bsmap -a %s -b %s -d %s -n 1 -r 0 -S 1234 -p %d -o %s' % (fname1, fname2, reference, numthread, outfile)
 	runcmd(cmd, log=open(outfile+".stdout", 'w+'), echo=verbose)
 
 def bsmap_ref(config, reference):
@@ -60,14 +68,20 @@ def bsmap_ref(config, reference):
 			files = ''
 			for f in sampleinfo['filenames']:
 				bname=os.path.splitext(os.path.splitext(os.path.basename(f))[0])[0];
-				fname=os.path.join(config['aligninfo']['fastqdir'], f)
+				fname=os.path.join(config['aligninfo']['rawdatadir'], f)
 				singlefile=os.path.join(outbasedir, 'single', bname + '.bam')
-				bsmap_runcmd(fname, config['aligninfo'][reference], config['aligninfo']['numthreads'], singlefile)
+				if fname.endswith('.bam'):
+					lnfile(fname, singlefile)
+				else:
+					bsmap_runcmd(fname, config['aligninfo'][reference], config['aligninfo']['numthreads'], singlefile)
 				files += ' ' + singlefile
 			runcmd('samtools merge ' + outfile + ' ' + files, echo=config['aligninfo']['verbose'])
 		else:
-			fname=os.path.join(config['aligninfo']['fastqdir'], sampleinfo['filenames'][0])
-			bsmap_runcmd(fname, config['aligninfo'][reference], config['aligninfo']['numthreads'], outfile, config['aligninfo']['verbose'])
+			fname=os.path.join(config['aligninfo']['rawdatadir'], sampleinfo['filenames'][0])
+			if fname.endswith('.bam'):
+				lnfile(fname, outfile, config['aligninfo']['verbose'])
+			else:
+				bsmap_runcmd(fname, config['aligninfo'][reference], config['aligninfo']['numthreads'], outfile, config['aligninfo']['verbose'])
 
 import re
 def bsmap_stat_parse(infile):
@@ -645,7 +659,7 @@ def main():
 Example:
   cmsip -c cms.yaml
 
-Date: 2020/05/20
+Date: 2020/06/09
 Authors: Jin Li <lijin.abc@gmail.com>
 '''
 		)
