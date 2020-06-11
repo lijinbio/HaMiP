@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.2.7"
+__version__ = "0.0.2.8"
 
 import os
 import sys
@@ -196,12 +196,15 @@ def mcall(config):
 
 def removeCommonReads_runcmd(infile1, infile2, outfile1, outfile2, verbose=False):
 	bin=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'perl', 'removeCommonRead.pl')
-	makedirectory(outfile1, verbose)
-	makedirectory(outfile2, verbose)
-	cmd = bin + ' ' + infile1 + ' ' + infile2 + \
-		' >(' + 'samtools view -bS - ' + ' -o ' + outfile1 + ' 2>/dev/null)' \
-		' >(' + 'samtools view -bS - ' + ' -o ' + outfile2 + ' 2>/dev/null)'
+	makedirectory(outfile1)
+	makedirectory(outfile2)
+	outsam1=outfile1+".sam"
+	outsam2=outfile2+".sam"
+	cmd = bin + ' ' + infile1 + ' ' + infile2 + ' ' + outsam1 + ' ' + outsam2
 	cp=runcmd(cmd, echo=verbose)
+	runcmd('samtools view -bS -o %s %s' % (outfile1, outsam1))
+	runcmd('samtools view -bS -o %s %s' % (outfile2, outsam2))
+	runcmd('rm -f %s %s' % (outsam1, outsam2))
 	return int(cp.stdout.strip())
 
 def removeCommonReads(config):
@@ -275,8 +278,8 @@ def saveQCstats(config, statfile, qcstats):
 				, 'sizefactors'
 				, 'twss_ref'
 				, 'twss_ref_norm'
-				, 'bsratio_ref'
-				, 'bsratio_spk'
+				, 'bcr_ref'
+				, 'bcr_spk'
 				)), file=f)
 			for sampleinfo in config['sampleinfo']:
 				sampleid = sampleinfo['sampleid']
@@ -288,8 +291,8 @@ def saveQCstats(config, statfile, qcstats):
 				sizefactors = qcstats['sizefactors'][sampleid]
 				twss_ref = qcstats['twss']['reference'][sampleid]
 				twss_ref_norm = qcstats['twsrefnorm'][sampleid]
-				bsratio_ref = qcstats['mcstat']['reference'][sampleid]
-				bsratio_spk = qcstats['mcstat']['spikein'][sampleid]
+				bcr_ref = qcstats['mcstat']['reference'][sampleid]
+				bcr_spk = qcstats['mcstat']['spikein'][sampleid]
 				print('\t'.join(map(str
 					, (sampleid
 						, total
@@ -304,8 +307,8 @@ def saveQCstats(config, statfile, qcstats):
 						, '{:.2f}'.format(sizefactors)
 						, twss_ref
 						, '{:.0f}'.format(twss_ref_norm)
-						, '{:.6f}'.format(bsratio_ref)
-						, '{:.6f}'.format(bsratio_spk)
+						, '{:.6f}'.format(bcr_ref)
+						, '{:.6f}'.format(bcr_spk)
 						)
 					)), file=f)
 		else:
@@ -317,7 +320,7 @@ def saveQCstats(config, statfile, qcstats):
 				, 'twss_ref'
 				, 'sizefactors'
 				, 'twss_ref_norm'
-				, 'bsratio_ref'
+				, 'bcr_ref'
 				)), file=f)
 			for sampleinfo in config['sampleinfo']:
 				sampleid = sampleinfo['sampleid']
@@ -326,7 +329,7 @@ def saveQCstats(config, statfile, qcstats):
 				twss_ref = qcstats['twss']['reference'][sampleid]
 				sizefactors = qcstats['sizefactors'][sampleid]
 				twss_ref_norm = qcstats['twsrefnorm'][sampleid]
-				bsratio_ref = qcstats['mcstat']['reference'][sampleid]
+				bcr_ref = qcstats['mcstat']['reference'][sampleid]
 				print('\t'.join(map(str
 					, (sampleid
 						, total
@@ -335,7 +338,7 @@ def saveQCstats(config, statfile, qcstats):
 						, twss_ref
 						, '{:.2f}'.format(sizefactors)
 						, '{:.0f}'.format(twss_ref_norm)
-						, '{:.6f}'.format(bsratio_ref)
+						, '{:.6f}'.format(bcr_ref)
 						)
 					)), file=f)
 

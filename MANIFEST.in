@@ -4,4 +4,9 @@ include cmsip_flowchart.png
 include LICENSE
 include cmsip/perl/*.pl
 include cmsip/R/*.R
-include cms.yaml
+include cmsip/template_cms.yaml
+include cmsip/template_cms_bam.yaml
+include example/bamfile/*.bam
+include example/config.sh
+include example/fasta.sh
+include example/run.sh
