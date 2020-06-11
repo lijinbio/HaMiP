@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.2.6"
+__version__ = "0.0.2.7"
 
 import os
 import sys
@@ -95,27 +95,46 @@ def bsmap_stat_parse(infile):
 	uniquereads=int(re.search('unique reads: (\d+)', dstr).groups()[0])
 	return (totalreads, alignedreads, uniquereads)
 
+def bam_numreads(infile):
+	if not os.path.exists(infile):
+		return 0
+	cmd='samtools view -c %s' % infile
+	cp=runcmdsh(cmd)
+	return int(cp.stdout.strip())
+
 def bsmap_stat(config, reference):
 	basedir=os.path.join(config['resultdir'], 'bsmap')
 	stats = {}
 	if 'inputbam' in config['aligninfo'] and config['aligninfo']:
-		return stats
-	for sampleinfo in config['sampleinfo']:
-		if 'filenames' in sampleinfo and len(sampleinfo['filenames']) > 1:
-			totalr=0
-			alignedr=0
-			uniquer=0
-			for fname in sampleinfo['filenames']:
-				bname=os.path.splitext(os.path.splitext(os.path.basename(fname))[0])[0];
-				f=os.path.join(basedir, reference, 'single', bname + '.bam.stdout')
-				ftotalr, falignedr, funiquer = bsmap_stat_parse(f)
-				totalr += ftotalr
-				alignedr += falignedr
-				uniquer += funiquer
-			stats[sampleinfo['sampleid']] = (totalr, alignedr, uniquer)
-		else:
-			f=os.path.join(basedir, reference, sampleinfo['sampleid'] + '.bam.stdout')
-			stats[sampleinfo['sampleid']] = bsmap_stat_parse(f)
+		for sampleinfo in config['sampleinfo']:
+			if 'filenames' in sampleinfo and len(sampleinfo['filenames']) > 1:
+				totalr=0
+				for fname in sampleinfo['filenames']:
+					bname=os.path.splitext(os.path.splitext(os.path.basename(fname))[0])[0];
+					f=os.path.join(basedir, reference, 'single', bname + '.bam')
+					totalr += bam_numreads(f)
+				stats[sampleinfo['sampleid']] = (totalr, totalr, totalr)
+			else:
+				f=os.path.join(basedir, reference, sampleinfo['sampleid'] + '.bam')
+				totalr=bam_numreads(f)
+				stats[sampleinfo['sampleid']] = (totalr, totalr, totalr)
+	else:
+		for sampleinfo in config['sampleinfo']:
+			if 'filenames' in sampleinfo and len(sampleinfo['filenames']) > 1:
+				totalr=0
+				alignedr=0
+				uniquer=0
+				for fname in sampleinfo['filenames']:
+					bname=os.path.splitext(os.path.splitext(os.path.basename(fname))[0])[0];
+					f=os.path.join(basedir, reference, 'single', bname + '.bam.stdout')
+					ftotalr, falignedr, funiquer = bsmap_stat_parse(f)
+					totalr += ftotalr
+					alignedr += falignedr
+					uniquer += funiquer
+				stats[sampleinfo['sampleid']] = (totalr, alignedr, uniquer)
+			else:
+				f=os.path.join(basedir, reference, sampleinfo['sampleid'] + '.bam.stdout')
+				stats[sampleinfo['sampleid']] = bsmap_stat_parse(f)
 	return stats
 
 def bsmap(config):
@@ -261,9 +280,9 @@ def saveQCstats(config, statfile, qcstats):
 				)), file=f)
 			for sampleinfo in config['sampleinfo']:
 				sampleid = sampleinfo['sampleid']
-				total = qcstats['mpstat']['reference'][sampleid][0]
-				unique_ref = qcstats['mpstat']['reference'][sampleid][2]
-				unique_spk = qcstats['mpstat']['spikein'][sampleid][2]
+				total = qcstats['mpstat']['reference'][sampleid][0] if sampleid in qcstats['mpstat']['reference'] else 0
+				unique_ref = qcstats['mpstat']['reference'][sampleid][2] if sampleid in qcstats['mpstat']['reference'] else 0
+				unique_spk = qcstats['mpstat']['spikein'][sampleid][2] if sampleid in qcstats['mpstat']['reference'] else 0
 				comm = qcstats['comm'][sampleid]
 				twss_spk = qcstats['twss']['spikein'][sampleid]
 				sizefactors = qcstats['sizefactors'][sampleid]
@@ -302,8 +321,8 @@ def saveQCstats(config, statfile, qcstats):
 				)), file=f)
 			for sampleinfo in config['sampleinfo']:
 				sampleid = sampleinfo['sampleid']
-				total = qcstats['mpstat']['reference'][sampleid][0]
-				unique_ref = qcstats['mpstat']['reference'][sampleid][2]
+				total = qcstats['mpstat']['reference'][sampleid][0] if sampleid in qcstats['mpstat']['reference'] else 0
+				unique_ref = qcstats['mpstat']['reference'][sampleid][2] if sampleid in qcstats['mpstat']['reference'] else 0
 				twss_ref = qcstats['twss']['reference'][sampleid]
 				sizefactors = qcstats['sizefactors'][sampleid]
 				twss_ref_norm = qcstats['twsrefnorm'][sampleid]
