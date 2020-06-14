@@ -29,7 +29,7 @@ cd cmsip
 python3 setup.py install
 ```
 
-In order to run CMSIP after a manual installation, the following dependent softwares are required.
+In order to run CMSIP after a manual installation, the following dependent software are required.
 
 | Software | URL |
 |-------|-------|
@@ -48,9 +48,11 @@ In order to run CMSIP after a manual installation, the following dependent softw
 
 CMSIP takes in a configuration file for input data and program parameters. CMSIP can be run end-to-end, starting from raw FASTQ files to peak calling and differential hydroxymethylation identification. One can also start the pipeline from intermediate steps. For example, using alignment files as input so that mapping steps will be skipped.
 
-### Example configuration file
+The configuration file is in a YAML format. Two example templates are `config_fastq.yaml` and `config_bam.yaml` under https://github.com/lijinbio/cmsip/blob/master/config. `config_fastq.yaml` is used as a full CMSIP running from FASTQ inputs, while `config_bam.yaml` is adapted to input existing BAM files so that CMSIP will skip the long-time alignment step. The inspection of configuration is explained in two attached examples.
 
-Two example configurations are `template_cms.yaml` and `template_cms_bam.yaml` under https://github.com/lijinbio/cmsip.
+### A toy example using BAM inputs
+
+To facilitate the running of CMSIP, a toy example is generated using existing BAM inputs. The example is accessible at https://github.com/lijinbio/cmsip/blob/master/example. 
 
 ## Contact
 

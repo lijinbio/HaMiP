@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.2.9"
+__version__ = "0.0.3.0"
 
 import os
 import sys
@@ -64,7 +64,7 @@ def bsmap_ref(config, reference):
 		outfile=os.path.join(outbasedir, sampleinfo['sampleid'] + '.bam')
 		if os.path.exists(outfile):
 			continue
-		if 'inputbam' in config['aligninfo'] and config['aligninfo']: # input BAM files
+		if 'inputbam' in config['aligninfo'] and config['aligninfo']['inputbam']: # input BAM files
 			if len(sampleinfo[reference]) > 1:
 				runcmd('samtools merge ' + outfile + ' ' + ' '.join(sampleinfo[reference]), echo=config['aligninfo']['verbose'])
 			else:
@@ -105,7 +105,7 @@ def bam_numreads(infile):
 def bsmap_stat(config, reference):
 	basedir=os.path.join(config['resultdir'], 'bsmap')
 	stats = {}
-	if 'inputbam' in config['aligninfo'] and config['aligninfo']:
+	if 'inputbam' in config['aligninfo'] and config['aligninfo']['inputbam']:
 		for sampleinfo in config['sampleinfo']:
 			if 'filenames' in sampleinfo and len(sampleinfo['filenames']) > 1:
 				totalr=0
