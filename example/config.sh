@@ -38,6 +38,12 @@ sampleinfo:
       - $PWD/bamfile/I2.bam
     spikein:
       - $PWD/bamfile/I2_spk.bam
+  - sampleid: I3
+    group: I
+    reference:
+      - $PWD/bamfile/I3.bam
+    spikein:
+      - $PWD/bamfile/I3_spk.bam
 groupinfo:
   group1: T
   group2: W
@@ -46,7 +52,7 @@ aligninfo:
   reference: $PWD/fasta/hg38.chr4.fa
   usespikein: True
   inputbam: True
-  spikein: $PWD/fasta/mm10.chr4.fa
+  spikein: $PWD/fasta/mm10.chr3.fa
   statfile: $PWD/outdir/qcstats.txt
   barplotinfo:
     outfile: $PWD/outdir/qcstats_twsn_barplot.pdf
