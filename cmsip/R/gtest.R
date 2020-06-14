@@ -17,7 +17,7 @@ sf[, 1]=NULL
 f=as.data.frame(t(t(f) * sf[names(f), 1]))
 f=split(f, rep(1:nsplit, ceiling(nrow(f)/nsplit))[1:nrow(f)])
 
-suppressPackageStartupMessages(library(RVAideMemoire))
+suppressPackageStartupMessages(library(DescTools))
 res=do.call(rbind
 	, parallel::mclapply(
 		unname(f)
@@ -32,7 +32,7 @@ res=do.call(rbind
 						lfc=log2(
 							(mean(x)+0.001) / (mean(y)+0.001)
 							)
-						tmp=G.test(
+						tmp=GTest(
 							c(sum(x), sum(y))
 							, p=c(length(x), length(y)) / (length(x)+length(y))
 							)
