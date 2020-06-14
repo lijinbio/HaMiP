@@ -50,5 +50,5 @@ CMSIP takes in a configuration file for input data and program parameters. CMSIP
 
 ### Example configuration file
 
-Two example configurations are `template_cms.yaml` and `template_cms_bam.yaml` under https://github.com/lijinbio/cmsip/cmsip.
+Two example configurations are `template_cms.yaml` and `template_cms_bam.yaml` under https://github.com/lijinbio/cmsip.
 
