@@ -363,7 +363,7 @@ def removedupref(config):
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(indir, sampleinfo['sampleid'] + '.bam')
 			outfile=os.path.join(outdir, sampleinfo['sampleid'] + '.bam')
-			makedirectory(outfile, config['aligninfo']['verbose'])
+			makedirectory(outfile)
 			runcmd('samtools rmdup -s %s %s' % (infile, outfile), echo=config['aligninfo']['verbose'])
 
 def bamtobed(config):
@@ -400,7 +400,7 @@ def fetchChromSizes(config):
 	outfile=os.path.join(config['resultdir'], config['genomescaninfo']['referencename'] + '_genomefile.txt')
 	if os.path.exists(outfile):
 		return outfile
-	makedirectory(outfile, config['genomescaninfo']['verbose'])
+	makedirectory(outfile)
 	runcmd('fetchChromSizes %s > %s' % (config['genomescaninfo']['referencename'], outfile), echo=config['genomescaninfo']['verbose'])
 	return outfile
 
@@ -416,12 +416,12 @@ def tabulatereadcounts(config, windowfile, beddir, counttablefile):
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(beddir, sampleinfo['sampleid'] + '.bed')
 			outfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph')
-			makedirectory(outfile, config['genomescaninfo']['verbose'])
+			makedirectory(outfile)
 			cmd = "bedtools coverage -a %s -b %s -counts | awk -v FS='\\t' -v OFS='\\t' -e '$4>0' > %s" % (windowfile, infile, outfile)
 			runcmdsh(cmd, config['genomescaninfo']['verbose'])
 	sampleids=[sampleinfo['sampleid'] for sampleinfo in config['sampleinfo']]
 	fs=[os.path.join(cntdir, id+'.bedgraph') for id in sampleids]
-	makedirectory(counttablefile, config['genomescaninfo']['verbose'])
+	makedirectory(counttablefile)
 	runcmd("bedtools unionbedg -i %s -header -names %s | gzip -n > %s" % (' '.join(fs), ' '.join(sampleids), counttablefile), echo=config['genomescaninfo']['verbose'])
 	for sampleinfo in config['sampleinfo']:
 			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph'), echo=config['genomescaninfo']['verbose'])
@@ -434,15 +434,15 @@ def tabulatemeanwig(config, windowfile, genomefile, beddir, counttablefile):
 	for sampleinfo in config['sampleinfo']:
 			infile=os.path.join(beddir, sampleinfo['sampleid'] + '.bed')
 			covfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.genomecov.bedgraph')
-			makedirectory(covfile, config['genomescaninfo']['verbose'])
+			makedirectory(covfile)
 			runcmd("bedtools genomecov -i %s -g %s -bg > %s" % (infile, genomefile, covfile), echo=config['genomescaninfo']['verbose'])
 			outfile=os.path.join(cntdir, sampleinfo['sampleid'] + '.bedgraph')
-			makedirectory(outfile, config['genomescaninfo']['verbose'])
+			makedirectory(outfile)
 			cmd = "bedtools intersect -a %s -b %s -wo | awk -v FS='\\t' -v OFS='\\t' -e '{ print $1, $2, $3, $7*$8/%d }' | sort -k 1,1 -k 2,2n -k 3,3n | bedtools groupby -g 1,2,3 -c 4 -o sum > %s" % (windowfile, covfile, config['genomescaninfo']['windowsize'], outfile)
 			runcmdsh(cmd, config['genomescaninfo']['verbose'])
 	sampleids=[sampleinfo['sampleid'] for sampleinfo in config['sampleinfo']]
 	fs=[os.path.join(cntdir, id+'.bedgraph') for id in sampleids]
-	makedirectory(counttablefile, config['genomescaninfo']['verbose'])
+	makedirectory(counttablefile)
 	runcmd("bedtools unionbedg -i %s -header -names %s | gzip -n > %s" % (' '.join(fs), ' '.join(sampleids), counttablefile), echo=config['genomescaninfo']['verbose'])
 	for sampleinfo in config['sampleinfo']:
 			runcmd('rm -f ' + os.path.join(cntdir, sampleinfo['sampleid'] + '.genomecov.bedgraph'), echo=config['genomescaninfo']['verbose'])
@@ -577,7 +577,7 @@ def genomescan_run(config):
 	return counttablefile
 
 def mergedhmr(config, testfile, outfile):
-	makedirectory(outfile, config['dhmrinfo']['verbose'])
+	makedirectory(outfile)
 	hyperfile=outfile+'.hyper.bed'
 	hypofile=outfile+'.hypo.bed'
 
@@ -604,7 +604,7 @@ def mergedhmr(config, testfile, outfile):
 def dhmr_run(config, statfile, counttablefile):
 	testfile = config['dhmrinfo']['testfile'] if 'testfile' in config['dhmrinfo'] else os.path.join(config['resultdir'], 'testfile.txt.gz')
 	if not os.path.exists(testfile):
-		makedirectory(testfile, config['dhmrinfo']['verbose'])
+		makedirectory(testfile)
 		if config['dhmrinfo']['method'] == 'ttest':
 			ttest(config, statfile, counttablefile, testfile)
 		elif config['dhmrinfo']['method'] == 'chisq':
