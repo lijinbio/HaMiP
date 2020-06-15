@@ -37,6 +37,7 @@ In order to run CMSIP after a manual installation, the following dependent softw
 | Matplotlib | https://matplotlib.org |
 | PyYAML | https://pyyaml.org |
 | bedtools | https://bedtools.readthedocs.io |
+| fetchChromSizes | http://hgdownload.cse.ucsc.edu/admin/exe/ |
 | R software | https://www.r-project.org |
 | R package DESeq2 | https://bioconductor.org/packages/release/bioc/html/DESeq2.html |
 | R package genefilter | https://bioconductor.org/packages/release/bioc/html/genefilter.html |
