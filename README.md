@@ -41,7 +41,7 @@ In order to run CMSIP after a manual installation, the following dependent softw
 | R software | https://www.r-project.org |
 | R package DESeq2 | https://bioconductor.org/packages/release/bioc/html/DESeq2.html |
 | R package genefilter | https://bioconductor.org/packages/release/bioc/html/genefilter.html |
-| R package RVAideMemoire | https://cran.r-project.org/web/packages/RVAideMemoire/index.html |
+| R package DescTools | https://cran.r-project.org/web/packages/DescTools/index.html |
 | Gawk | https://www.gnu.org/software/gawk |
 | MOABS | https://github.com/sunnyisgalaxy/moabs |
 
