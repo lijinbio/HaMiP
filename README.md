@@ -199,5 +199,4 @@ For example, three hypo-DHMRs are identified in chr4 between group T and group W
 ## Contact
 
 Maintainer: Jin Li, lijin.abc@gmail.com.
-PI: De-Qiang Sun, dsun@tamu.edu.
-
+PI: De-Qiang Sun, sunnyisgalaxy@gmail.com.
