@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-cmsip -c config.yaml
+HaMiP -c config.yaml

@@ -24,7 +24,7 @@ with io.open(os.path.join(CURDIR, "README.md"), "r", encoding="utf-8") as f:
 
 
 def get_version():
-    main_file = os.path.join(CURDIR, "cmsip", "cmsip.py")
+    main_file = os.path.join(CURDIR, "HaMiP", "HaMiP.py")
     _version_re = re.compile(r"__version__\s+=\s+(?P<version>.*)")
     with open(main_file, "r", encoding="utf8") as f:
         match = _version_re.search(f.read())
@@ -33,19 +33,19 @@ def get_version():
 
 
 setup(
-    name="cmsip",
+    name="HaMiP",
     version=get_version(),
     author="Jin Li",
     author_email="lijin.abc@gmail.com",
     description="",
     long_description=README,
     long_description_content_type="text/markdown",
-    url="https://github.com/lijinbio/cmsip",
+    url="https://github.com/lijinbio/HaMiP",
     packages=find_packages(exclude=EXCLUDE_FROM_PACKAGES),
     include_package_data=True,
     keywords=[],
     scripts=[],
-    entry_points={"console_scripts": ["cmsip=cmsip.cmsip:main"]},
+    entry_points={"console_scripts": ["HaMiP=HaMiP.HaMiP:main"]},
     zip_safe=False,
     install_requires=DEPENDENCIES,
     test_suite="tests.test_project",

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set noexpandtab tabstop=2 shiftwidth=2 softtabstop=-1 fileencoding=utf-8:
 
-__version__ = "0.0.3.0"
+__version__ = "0.0.3.1"
 
 import os
 import sys
@@ -686,9 +686,9 @@ def main():
 		, formatter_class=argparse.RawDescriptionHelpFormatter
 		, epilog='''
 Example:
-  cmsip -c cms.yaml
+  HaMiP -c cms.yaml
 
-Date: 2020/06/10
+Date: 2020/09/03
 Authors: Jin Li <lijin.abc@gmail.com>
 '''
 		)

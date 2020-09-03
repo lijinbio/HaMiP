@@ -1,35 +1,35 @@
-# CMSIP: Hydroxymethylation anlaysis of CMS-IP data
+# HaMiP: DNA hydroxymethylation analysis of Cytosine-5-methylenesulfonate ImmunoPrecipitation sequencing
 
 A scalable, accurate, and efficient solution for hydroxymethylation analysis of CMS-IP sequencing data.
 
-![Workflow of CMSIP.](https://github.com/lijinbio/cmsip/raw/master/cmsip_flowchart.png)
+![Workflow of HaMiP.](https://github.com/lijinbio/HaMiP/raw/master/HaMiP_flowchart.png)
 
 ## Installation
 
-CMSIP has been deployed in Bioconda at https://anaconda.org/bioconda/cmsip. It is encouraged to install CMSIP from Bioconda due to most runtime dependencies will be installed automatically. The following channels should be added in Conda. Namely,
+HaMiP has been deployed in Bioconda at https://anaconda.org/bioconda/HaMiP. It is encouraged to install HaMiP from Bioconda due to most runtime dependencies will be installed automatically. The following channels should be added in Conda. Namely,
 
 ```
 conda config --add channels defaults
 conda config --add channels bioconda
 conda config --add channels conda-forge
-conda install cmsip
+conda install HaMiP
 ```
 
-Alternatively, CMSIP has been also deployed in PyPI at https://pypi.org/project/cmsip, and it can be installed via `pip`.
+Alternatively, HaMiP has been also deployed in PyPI at https://pypi.org/project/HaMiP, and it can be installed via `pip`.
 
 ```
-pip3 install cmsip
+pip3 install HaMiP
 ```
 
-In some cases, users want to build CMSIP manually from source code at https://github.com/lijinbio/cmsip. Below is an example installation steps.
+In some cases, users want to build HaMiP manually from source code at https://github.com/lijinbio/HaMiP. Below is an example installation steps.
 
 ```
-git clone https://github.com/lijinbio/cmsip.git
-cd cmsip
+git clone https://github.com/lijinbio/HaMiP.git
+cd HaMiP
 python3 setup.py install
 ```
 
-In order to run CMSIP after a manual installation, the following dependent software are required.
+In order to run HaMiP after a manual installation, the following dependent software are required.
 
 | Software | URL |
 |-------|-------|
@@ -47,11 +47,11 @@ In order to run CMSIP after a manual installation, the following dependent softw
 
 ## Documentation
 
-CMSIP takes in a configuration file for input data and program parameters. CMSIP can be run end-to-end, starting from raw FASTQ files to peak calling and differential hydroxymethylation identification. One can also start the pipeline from intermediate steps. For example, using alignment files as input so that mapping steps will be skipped.
+HaMiP takes in a configuration file for input data and program parameters. HaMiP can be run end-to-end, starting from raw FASTQ files to peak calling and differential hydroxymethylation identification. One can also start the pipeline from intermediate steps. For example, using alignment files as input so that mapping steps will be skipped.
 
 ### Inspection of configuration
 
-The configuration file is in a YAML format. Two example templates are `config_fastq.yaml` and `config_bam.yaml` under https://github.com/lijinbio/cmsip/blob/master/config. `config_fastq.yaml` is used as a full CMSIP running from FASTQ inputs, while `config_bam.yaml` is adapted to input existing BAM files so that CMSIP will skip the long-time alignment step. The inspection of configuration is explained below.
+The configuration file is in a YAML format. Two example templates are `config_fastq.yaml` and `config_bam.yaml` under https://github.com/lijinbio/HaMiP/blob/master/config. `config_fastq.yaml` is used as a full HaMiP running from FASTQ inputs, while `config_bam.yaml` is adapted to input existing BAM files so that HaMiP will skip the long-time alignment step. The inspection of configuration is explained below.
 
 1. sampleinfo
 
@@ -63,7 +63,7 @@ The sampleinfo section defines metadata information in analysis. Below metadata 
 | sampleinfo.group | the biological group of the sample, e.g., KO or WT |
 | sampleinfo.filenames | the absolute path of raw FASTQ files |
 | sampleinfo.reference | the absolute path of the reference BAM file when `aligninfo.inputbam` is True |
-| sampleinfo.spikein | the absolute path of the spike-in BAM file when `aligninfo.inputbam` and `aligninfo.usespikein` is True |
+| sampleinfo.spikein | the absolute path of the spike-in BAM file when `aligninfo.inputbam` and `aligninfo.usespikein` are True |
 
  2. groupinfo
 
@@ -86,7 +86,7 @@ This section specifies parameters used in raw reads alignment.
 |-------|-------|
 | aligninfo.inputbam | True for BAM inputs. Default: FASTQ inputs. |
 | aligninfo.reference | FASTA file of the reference genome, e.g. `hg38.fa`. |
-| aligninfo.usespikein | True for spike-in libraries, otherwise False. This option controls the normalization method, either a spike-in normalization using spike-in mapping, or reduced to WIG sum in reference genome. |
+| aligninfo.usespikein | True for spike-in libraries, otherwise False. This option controls the normalization method, either a spike-in normalization using spike-in mapping, or reduced to WIG sum in the reference genome. |
 | aligninfo.spikein | FASTA file of the spike-in genome, e.g. `mm10.fa`. |
 | aligninfo.statfile | the output statistics file. This file includes quality control statistics as well as estimated normalization factors. |
 | aligninfo.barplotinfo | a barplot of normalized WIG sums of samples. |
@@ -104,7 +104,7 @@ This section defines parameters for CMS measurement construction.
 | genomescaninfo.windowfile | an intermediate window file with fixed-size genomic regions. |
 | genomescaninfo.referencename | the UCSC genome name to fetch reference genome size. E.g., hg38 or mm10. |
 | genomescaninfo.windowsize | the window size |
-| genomescaninfo.readscount | CMS measurement using readcount (True) or mean WIG (False). |
+| genomescaninfo.readscount | CMS measurement using read count (True) or mean WIG (False). |
 | genomescaninfo.counttablefile | the result count table file. |
 | genomescaninfo.verbose | Print verbose message |
 
@@ -148,7 +148,7 @@ If `useinput` is True, this section is required to specify input data. When inpu
 
 ### A toy example using BAM inputs
 
-To facilitate the running of CMSIP, a toy example is generated using existing BAM inputs. The example is accessible at https://github.com/lijinbio/cmsip/blob/master/example. The `example` directory consists of running scripts and example BAM files. Below commands will generate the configuration file and run the example.
+To facilitate the running of HaMiP, a toy example is generated using existing BAM inputs. The example is accessible at https://github.com/lijinbio/HaMiP/blob/master/example. The `example` directory consists of running scripts and example BAM files. Below commands will generate the configuration file and run the example.
 
 ```
 $ ./config.sh ## Generate config.yaml
@@ -169,7 +169,7 @@ This script is to download required FASTA file for reference genome and spike-in
 The simple command to run CMSIP:
 
 ```
-$ cmsip -c config.yaml
+$ HaMiP -c config.yaml
 ```
 
 Intermediate and results files are stored under `./outdir`. The example quality control statistic file (e.g., `qcstats.txt`) is as below.
